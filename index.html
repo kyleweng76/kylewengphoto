@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- ★ 修改 1: APP Icon 換成 weblogo.png -->
     <link rel="apple-touch-icon" href="weblogo.png">
     <link rel="shortcut icon" href="weblogo.png">
 
@@ -26,6 +25,8 @@
             color: var(--text-color);
             margin: 0; padding: 0;
             -webkit-tap-highlight-color: transparent;
+            /* 防止 iOS 上左右滑動導致頁面回上一頁 */
+            overscroll-behavior-x: none; 
         }
 
         /* 標題與導航 */
@@ -39,26 +40,23 @@
             z-index: 50;
         }
         
-        /* ★ 修改 2: Logo 樣式調整 */
         header h1 {
             margin: 0 0 15px 0;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 40px; /* 確保有最小高度，避免圖片載入時跳動 */
+            min-height: 40px; 
         }
 
-        /* 設定 Logo 圖片的大小 */
         .site-logo {
-            height: 36px; /* 調整 Logo 高度 */
+            height: 36px;
             width: auto;
             display: block;
         }
         
-        /* 備用文字標題樣式 (當圖片讀不到時顯示) */
         .fallback-title {
-            display: none; /* 預設隱藏 */
+            display: none;
             font-weight: 300;
             letter-spacing: 2px;
             font-size: 1.2rem;
@@ -68,14 +66,14 @@
         .back-btn {
             position: absolute;
             left: 20px;
-            top: 35px; /* 稍微對齊 Logo 的中心 */
+            top: 35px;
             font-size: 1rem;
             color: #ccc;
             cursor: pointer;
             display: none;
             padding: 10px;
             margin-left: -10px;
-            z-index: 60; /* 確保返回鍵在最上層 */
+            z-index: 60;
         }
 
         /* --- 分類標籤 (Tabs) --- */
@@ -86,13 +84,10 @@
             padding-bottom: 15px;
             overflow-x: auto;
             white-space: nowrap;
-            /* 隱藏捲軸 */
             -ms-overflow-style: none;  
             scrollbar-width: none;  
         }
-        .category-tabs::-webkit-scrollbar { 
-            display: none; 
-        }
+        .category-tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
             background: transparent;
@@ -192,7 +187,7 @@
         }
         .photo-item img.loaded { opacity: 1; }
 
-        /* Lightbox */
+        /* --- Lightbox 改良版 --- */
         .lightbox {
             display: none;
             position: fixed;
@@ -202,6 +197,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            /* 禁止選取文字，避免滑動時反白 */
+            user-select: none; 
+            -webkit-user-select: none;
         }
         .lightbox.active { display: flex; animation: fadeIn 0.2s ease; }
         
@@ -209,6 +207,8 @@
             max-width: 100%; 
             max-height: 80vh;
             object-fit: contain;
+            transition: opacity 0.2s ease; /* 切換時的淡入淡出 */
+            opacity: 1;
         }
 
         .action-bar { 
@@ -216,31 +216,63 @@
             display: flex; 
             gap: 15px; 
             z-index: 1001;
+            align-items: center;
+            flex-direction: column; /* 把提示字放按鈕下面 */
         }
 
         .btn {
             background: rgba(255,255,255,0.15);
-            color: white; padding: 10px 24px;
+            color: white; padding: 12px 28px;
             border-radius: 30px; text-decoration: none;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
             border: 1px solid rgba(255,255,255,0.2);
             backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .close-btn {
             position: absolute; top: 20px; right: 20px;
-            font-size: 30px; padding: 10px; cursor: pointer;
-            z-index: 1001;
+            font-size: 32px; padding: 15px; cursor: pointer;
+            z-index: 1002;
             color: white;
-            width: 40px; height: 40px;
-            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8;
+        }
+
+        /* 左右切換按鈕 (電腦版顯示) */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            display: none; /* 手機版隱藏，改用滑動 */
+            align-items: center;
+            justify-content: center;
+            z-index: 1002;
+            transition: background 0.2s;
+        }
+        
+        .nav-btn:hover { background: rgba(255,255,255,0.2); }
+        .nav-btn.prev { left: 20px; }
+        .nav-btn.next { right: 20px; }
+
+        @media (min-width: 768px) {
+            .nav-btn { display: flex; } /* 電腦版顯示箭頭 */
         }
 
         .loading { text-align: center; padding: 40px; color: #666; width: 100%; grid-column: 1 / -1; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -249,14 +281,11 @@
     <header>
         <div id="back-btn" class="back-btn" onclick="goHome()">←</div>
         
-        <!-- ★ 修改 3: 加入 onerror 機制 -->
-        <!-- 如果圖片讀取失敗(例如在預覽時)，會隱藏圖片並顯示下方的文字標題 -->
         <h1 onclick="goHome()">
             <img src="kw_web_white_s.png" alt="KYLE PHOTO" class="site-logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
             <span id="text-logo" class="fallback-title">KYLE PHOTO</span>
         </h1>
         
-        <!-- 分類標籤區 -->
         <div id="category-tabs" class="category-tabs">
             <button class="tab-btn active" onclick="filterAlbums('all')">全部 All</button>
             <button class="tab-btn" onclick="filterAlbums('portrait')">形象寫真</button>
@@ -264,24 +293,30 @@
         </div>
     </header>
 
-    <!-- 頁面 1: 首頁相簿列表 -->
-    <div id="home-view" class="album-list">
-        <!-- JS 會自動填入 -->
-    </div>
+    <div id="home-view" class="album-list"></div>
 
-    <!-- 頁面 2: 照片牆 -->
     <div id="gallery-view" class="gallery-view">
         <div id="gallery-grid" class="gallery-grid"></div>
     </div>
 
-    <!-- 燈箱元件 -->
+    <!-- 優化後的 Lightbox -->
     <div id="lightbox" class="lightbox">
         <div class="close-btn" onclick="closeLightbox()">&times;</div>
+        
+        <!-- 左右切換按鈕 -->
+        <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
+        <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
+
+        <!-- 圖片 -->
         <img id="lightbox-img" src="" alt="">
+
+        <!-- 操作區 -->
         <div class="action-bar">
-            <a id="download-btn" href="#" target="_blank" class="btn">下載原始檔 / Download</a>
+            <a id="download-btn" href="#" target="_blank" class="btn" download>
+                <span>↓</span> 下載原始檔 / Download Original
+            </a>
+            <p style="font-size: 12px; color: #888; margin: 0;">iPhone 請點擊後長按儲存</p>
         </div>
-        <p style="font-size: 12px; color: #666; margin-top: 15px;">iPhone: 點擊按鈕後長按圖片儲存</p>
     </div>
 
     <script>
@@ -289,7 +324,6 @@
         const API_KEY = 'f26141b4efcea9ac125fd95bf777eb55'; 
         const USER_ID = '135451339@N02'; 
 
-        // ★ 分類關鍵字設定
         const EVENT_KEYWORDS = [
             'Pride', 'Parade', 'Championship', 'Championshop', 
             'Day', '1st', '2nd', '3rd', '活動', '龍舟賽', '感恩會', 
@@ -302,6 +336,10 @@
 
         let cachedAlbums = [];
         let currentFilter = 'all';
+        
+        // ★ 新增：儲存目前相簿的所有照片資料 (為了做左右切換)
+        let currentAlbumPhotos = []; 
+        let currentPhotoIndex = 0;
 
         const homeView = document.getElementById('home-view');
         const galleryView = document.getElementById('gallery-view');
@@ -350,21 +388,12 @@
                     const cover = set.primary_photo_extras?.url_m || set.primary_photo_extras?.url_o || '';
                     const title = set.title._content;
                     
-                    // --- 核心分類邏輯 ---
-                    // 預設為 'portrait' (形象寫真)
                     let type = 'portrait';
-                    
-                    // 只要標題包含「活動關鍵字」的任何一個，就改為 'event'
                     if (EVENT_KEYWORDS.some(keyword => title.toLowerCase().includes(keyword.toLowerCase()))) {
                         type = 'event';
                     }
 
-                    return {
-                        id: set.id,
-                        title: title,
-                        cover: cover,
-                        type: type 
-                    };
+                    return { id: set.id, title: title, cover: cover, type: type };
                 });
 
                 filterAlbums('all'); 
@@ -377,7 +406,6 @@
 
         function filterAlbums(type) {
             currentFilter = type;
-            
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             
@@ -385,34 +413,21 @@
             if(type === 'portrait') buttons[1].classList.add('active');
             if(type === 'event') buttons[2].classList.add('active');
 
-            let filteredData = [];
-            if (type === 'all') {
-                filteredData = cachedAlbums;
-            } else {
-                filteredData = cachedAlbums.filter(album => album.type === type);
-            }
-
+            let filteredData = (type === 'all') ? cachedAlbums : cachedAlbums.filter(album => album.type === type);
             renderAlbumList(filteredData);
         }
 
         function renderAlbumList(albums) {
             homeView.innerHTML = '';
-            
             if (albums.length === 0) {
                 homeView.innerHTML = '<div class="loading">此分類暫無相簿</div>';
                 return;
             }
-
             albums.forEach(album => {
                 const coverImg = album.cover || 'https://placehold.co/600x400/333/FFF?text=No+Cover';
-                
                 const card = document.createElement('div');
                 card.className = 'album-card';
-                card.innerHTML = `
-                    <img src="${coverImg}" loading="lazy" alt="${album.title}">
-                    <div class="album-title">${album.title}</div>
-                `;
-                
+                card.innerHTML = `<img src="${coverImg}" loading="lazy" alt="${album.title}"><div class="album-title">${album.title}</div>`;
                 card.onclick = () => {
                     const newUrl = `?album=${album.id}`;
                     safePushState({path: newUrl}, '', newUrl);
@@ -429,7 +444,8 @@
             categoryTabs.style.display = 'none';
             galleryGrid.innerHTML = '<div class="loading">載入照片中...</div>';
 
-            const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=${API_KEY}&photoset_id=${photosetId}&user_id=${USER_ID}&extras=url_q,url_k,url_o&format=json&nojsoncallback=1`;
+            // ★ 關鍵優化: 請求 url_l (1024px) 於燈箱顯示，url_o (原始) 於下載
+            const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=${API_KEY}&photoset_id=${photosetId}&user_id=${USER_ID}&extras=url_q,url_l,url_o&format=json&nojsoncallback=1`;
 
             try {
                 const response = await fetch(url);
@@ -439,18 +455,32 @@
 
                 galleryGrid.innerHTML = ''; 
                 document.title = data.photoset.title + " | Kyle";
+                
+                // 重置照片清單
+                currentAlbumPhotos = [];
 
-                data.photoset.photo.forEach(photo => {
+                data.photoset.photo.forEach((photo, index) => {
                     const thumbUrl = photo.url_q || photo.url_m; 
-                    const fullSizeUrl = photo.url_o || photo.url_k; 
+                    // 預覽圖優先順序: Large (1024) -> Original -> Medium
+                    const previewUrl = photo.url_l || photo.url_o || photo.url_m;
+                    // 下載圖優先順序: Original -> Large
+                    const downloadUrl = photo.url_o || photo.url_l;
                     
                     if(!thumbUrl) return;
+
+                    // 存入陣列，方便之後做左右切換
+                    currentAlbumPhotos.push({
+                        preview: previewUrl,
+                        download: downloadUrl,
+                        title: photo.title
+                    });
 
                     const div = document.createElement('div');
                     div.className = 'photo-item';
                     div.innerHTML = `<img src="${thumbUrl}" loading="lazy" onload="this.classList.add('loaded')">`;
                     
-                    div.onclick = () => openLightbox(fullSizeUrl);
+                    // 改為傳入 index
+                    div.onclick = () => openLightbox(index);
                     galleryGrid.appendChild(div);
                 });
 
@@ -463,7 +493,6 @@
         function goHome() {
             const newUrl = window.location.pathname; 
             safePushState({path: newUrl}, '', newUrl);
-            
             homeView.style.display = 'grid';
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
@@ -471,15 +500,52 @@
             document.title = "Kyle's Gallery";
         }
 
+        // ================= Lightbox 優化版邏輯 =================
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
         const downloadBtn = document.getElementById('download-btn');
 
-        function openLightbox(url) {
-            lightboxImg.src = url;
-            downloadBtn.href = url;
+        function openLightbox(index) {
+            currentPhotoIndex = index;
+            updateLightboxContent();
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
+        }
+
+        function updateLightboxContent() {
+            const photo = currentAlbumPhotos[currentPhotoIndex];
+            
+            // 先將透明度設為 0 做切換效果
+            lightboxImg.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                lightboxImg.src = photo.preview;
+                downloadBtn.href = photo.download;
+                lightboxImg.style.opacity = '1';
+            }, 100);
+
+            // ★ 預載前後張照片 (Preload)，讓滑動更順暢
+            preloadImage(currentPhotoIndex + 1);
+            preloadImage(currentPhotoIndex - 1);
+        }
+
+        function preloadImage(index) {
+            if (index >= 0 && index < currentAlbumPhotos.length) {
+                const img = new Image();
+                img.src = currentAlbumPhotos[index].preview;
+            }
+        }
+
+        function changePhoto(direction) {
+            // 計算新索引
+            let newIndex = currentPhotoIndex + direction;
+            
+            // 邊界檢查
+            if (newIndex < 0) return; // 第一張不能再往前
+            if (newIndex >= currentAlbumPhotos.length) return; // 最後一張不能再往後
+
+            currentPhotoIndex = newIndex;
+            updateLightboxContent();
         }
 
         function closeLightbox() {
@@ -488,8 +554,45 @@
             document.body.style.overflow = '';
         }
 
+        // 點擊背景關閉
         lightbox.addEventListener('click', (e) => {
             if (e.target === lightbox) closeLightbox();
+        });
+
+        // --- 手勢滑動邏輯 (Touch Events) ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        lightbox.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        lightbox.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const swipeThreshold = 50; // 滑動超過 50px 才算數
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // 向左滑 (下一張)
+                    changePhoto(1);
+                } else {
+                    // 向右滑 (上一張)
+                    changePhoto(-1);
+                }
+            }
+        }
+        
+        // 鍵盤左右鍵支援
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'ArrowLeft') changePhoto(-1);
+            if (e.key === 'ArrowRight') changePhoto(1);
+            if (e.key === 'Escape') closeLightbox();
         });
 
         window.onpopstate = function(event) {
