@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kyle's Gallery</title>
+    <title>Kylewengphoto攝情</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,7 +25,6 @@
             color: var(--text-color);
             margin: 0; padding: 0;
             -webkit-tap-highlight-color: transparent;
-            /* 防止 iOS 上左右滑動導致頁面回上一頁 */
             overscroll-behavior-x: none; 
         }
 
@@ -187,37 +186,88 @@
         }
         .photo-item img.loaded { opacity: 1; }
 
-        /* --- Lightbox 改良版 --- */
+        /* --- Lightbox 修正版 --- */
         .lightbox {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.98);
             z-index: 1000;
+            /* 改為 Flex Column 佈局，確保上下不會重疊 */
+            display: flex; /* 這裡預設要是 flex，但透過 active class 控制顯示 */
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between; /* 內容上下撐開 */
             align-items: center;
-            /* 禁止選取文字，避免滑動時反白 */
+            padding: 20px 0; /* 上下留白 */
+            box-sizing: border-box;
+            
+            visibility: hidden; /* 預設隱藏 */
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s;
+
             user-select: none; 
             -webkit-user-select: none;
         }
-        .lightbox.active { display: flex; animation: fadeIn 0.2s ease; }
-        
-        .lightbox img {
-            max-width: 100%; 
-            max-height: 80vh;
-            object-fit: contain;
-            transition: opacity 0.2s ease; /* 切換時的淡入淡出 */
+
+        .lightbox.active { 
+            visibility: visible;
             opacity: 1;
         }
-
-        .action-bar { 
-            margin-top: 20px; 
-            display: flex; 
-            gap: 15px; 
-            z-index: 1001;
+        
+        /* 圖片容器：佔據中間所有剩餘空間 */
+        .lightbox-content {
+            flex: 1;
+            width: 100%;
+            display: flex;
             align-items: center;
-            flex-direction: column; /* 把提示字放按鈕下面 */
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .lightbox img {
+            max-width: 100%; 
+            /* ★ 關鍵修正：高度扣掉上下保留區 (Close btn + Action bar) */
+            /* 100dvh 代表裝置的可視高度，比 100vh 在手機上更準確 */
+            max-height: calc(100dvh - 140px); 
+            object-fit: contain;
+            
+            /* 預設狀態 */
+            opacity: 1;
+            transform: translateX(0);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+        }
+
+        /* ★ 新增：滑動動畫樣式 */
+        /* 往左滑 (下一張)：舊圖往左出，新圖從右入 */
+        .anim-slide-left-out { transform: translateX(-20%) scale(0.9); opacity: 0 !important; }
+        .anim-slide-left-in  { animation: slideInRight 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        /* 往右滑 (上一張)：舊圖往右出，新圖從左入 */
+        .anim-slide-right-out { transform: translateX(20%) scale(0.9); opacity: 0 !important; }
+        .anim-slide-right-in  { animation: slideInLeft 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* 底部操作區：固定高度，避免被圖片壓住 */
+        .action-bar { 
+            height: 80px; /* 固定高度區 */
+            width: 100%;
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1001;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8)); /* 底部稍微漸層黑，增加對比 */
+            flex-shrink: 0; /* 防止被壓縮 */
         }
 
         .btn {
@@ -228,17 +278,19 @@
             font-weight: 500;
             border: 1px solid rgba(255,255,255,0.2);
             backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
+            transition: background 0.2s;
         }
+        .btn:active { background: rgba(255,255,255,0.3); transform: scale(0.98); }
         
         .close-btn {
-            position: absolute; top: 20px; right: 20px;
-            font-size: 32px; padding: 15px; cursor: pointer;
+            position: absolute; top: 10px; right: 20px;
+            font-size: 36px; padding: 10px; cursor: pointer;
             z-index: 1002;
             color: white;
             opacity: 0.8;
+            height: 50px; width: 50px;
+            display: flex; align-items: center; justify-content: center;
         }
 
         /* 左右切換按鈕 (電腦版顯示) */
@@ -253,7 +305,7 @@
             background: rgba(0,0,0,0.3);
             border-radius: 50%;
             width: 50px; height: 50px;
-            display: none; /* 手機版隱藏，改用滑動 */
+            display: none; 
             align-items: center;
             justify-content: center;
             z-index: 1002;
@@ -265,7 +317,7 @@
         .nav-btn.next { right: 20px; }
 
         @media (min-width: 768px) {
-            .nav-btn { display: flex; } /* 電腦版顯示箭頭 */
+            .nav-btn { display: flex; } 
         }
 
         .loading { text-align: center; padding: 40px; color: #666; width: 100%; grid-column: 1 / -1; }
@@ -299,23 +351,23 @@
         <div id="gallery-grid" class="gallery-grid"></div>
     </div>
 
-    <!-- 優化後的 Lightbox -->
+    <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
         <div class="close-btn" onclick="closeLightbox()">&times;</div>
         
-        <!-- 左右切換按鈕 -->
         <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
         <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
 
-        <!-- 圖片 -->
-        <img id="lightbox-img" src="" alt="">
+        <!-- 包一個容器來控制版面，避免圖片亂跑 -->
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="">
+        </div>
 
-        <!-- 操作區 -->
         <div class="action-bar">
             <a id="download-btn" href="#" target="_blank" class="btn" download>
                 <span>↓</span> 下載原始檔 / Download Original
             </a>
-            <p style="font-size: 12px; color: #888; margin: 0;">iPhone 請點擊後長按儲存</p>
+            <p style="font-size: 12px; color: #888; margin: 8px 0 0 0;">iPhone 請點擊後長按儲存</p>
         </div>
     </div>
 
@@ -336,8 +388,6 @@
 
         let cachedAlbums = [];
         let currentFilter = 'all';
-        
-        // ★ 新增：儲存目前相簿的所有照片資料 (為了做左右切換)
         let currentAlbumPhotos = []; 
         let currentPhotoIndex = 0;
 
@@ -444,7 +494,6 @@
             categoryTabs.style.display = 'none';
             galleryGrid.innerHTML = '<div class="loading">載入照片中...</div>';
 
-            // ★ 關鍵優化: 請求 url_l (1024px) 於燈箱顯示，url_o (原始) 於下載
             const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=${API_KEY}&photoset_id=${photosetId}&user_id=${USER_ID}&extras=url_q,url_l,url_o&format=json&nojsoncallback=1`;
 
             try {
@@ -456,19 +505,15 @@
                 galleryGrid.innerHTML = ''; 
                 document.title = data.photoset.title + " | Kyle";
                 
-                // 重置照片清單
                 currentAlbumPhotos = [];
 
                 data.photoset.photo.forEach((photo, index) => {
                     const thumbUrl = photo.url_q || photo.url_m; 
-                    // 預覽圖優先順序: Large (1024) -> Original -> Medium
                     const previewUrl = photo.url_l || photo.url_o || photo.url_m;
-                    // 下載圖優先順序: Original -> Large
                     const downloadUrl = photo.url_o || photo.url_l;
                     
                     if(!thumbUrl) return;
 
-                    // 存入陣列，方便之後做左右切換
                     currentAlbumPhotos.push({
                         preview: previewUrl,
                         download: downloadUrl,
@@ -479,7 +524,6 @@
                     div.className = 'photo-item';
                     div.innerHTML = `<img src="${thumbUrl}" loading="lazy" onload="this.classList.add('loaded')">`;
                     
-                    // 改為傳入 index
                     div.onclick = () => openLightbox(index);
                     galleryGrid.appendChild(div);
                 });
@@ -500,31 +544,47 @@
             document.title = "Kyle's Gallery";
         }
 
-        // ================= Lightbox 優化版邏輯 =================
+        // ================= Lightbox 滑動動畫邏輯 =================
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
         const downloadBtn = document.getElementById('download-btn');
 
         function openLightbox(index) {
             currentPhotoIndex = index;
-            updateLightboxContent();
+            // 歸零動畫 class
+            lightboxImg.className = '';
+            updateLightboxContent(false); // false = 不播動畫 (第一張直接顯示)
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
-        function updateLightboxContent() {
+        function updateLightboxContent(animate = false, direction = 1) {
             const photo = currentAlbumPhotos[currentPhotoIndex];
             
-            // 先將透明度設為 0 做切換效果
-            lightboxImg.style.opacity = '0.5';
-            
-            setTimeout(() => {
-                lightboxImg.src = photo.preview;
-                downloadBtn.href = photo.download;
-                lightboxImg.style.opacity = '1';
-            }, 100);
+            // 下載連結直接更新
+            downloadBtn.href = photo.download;
 
-            // ★ 預載前後張照片 (Preload)，讓滑動更順暢
+            if (animate) {
+                // 如果需要動畫：先加上「移出」的動畫
+                // direction 1 = 下一張 (往左滑)
+                // direction -1 = 上一張 (往右滑)
+                
+                // 1. 先把舊圖 fade out / slide out
+                lightboxImg.className = direction === 1 ? 'anim-slide-left-out' : 'anim-slide-right-out';
+
+                // 2. 短暫延遲後換圖，並 slide in
+                setTimeout(() => {
+                    lightboxImg.src = photo.preview;
+                    lightboxImg.className = direction === 1 ? 'anim-slide-left-in' : 'anim-slide-right-in';
+                }, 200); // 這個時間要配合 CSS transition
+                
+            } else {
+                // 不需要動畫 (剛打開時)
+                lightboxImg.src = photo.preview;
+                lightboxImg.className = ''; 
+            }
+
+            // 預載
             preloadImage(currentPhotoIndex + 1);
             preloadImage(currentPhotoIndex - 1);
         }
@@ -537,29 +597,30 @@
         }
 
         function changePhoto(direction) {
-            // 計算新索引
             let newIndex = currentPhotoIndex + direction;
-            
-            // 邊界檢查
-            if (newIndex < 0) return; // 第一張不能再往前
-            if (newIndex >= currentAlbumPhotos.length) return; // 最後一張不能再往後
+            if (newIndex < 0) return; 
+            if (newIndex >= currentAlbumPhotos.length) return; 
 
             currentPhotoIndex = newIndex;
-            updateLightboxContent();
+            // 傳入 true (要動畫) 和方向
+            updateLightboxContent(true, direction);
         }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
             lightboxImg.src = '';
+            lightboxImg.className = ''; // 清除動畫
             document.body.style.overflow = '';
         }
 
-        // 點擊背景關閉
         lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox) closeLightbox();
+            // 點擊背景 (不是圖片也不是按鈕) 時關閉
+            if (e.target === lightbox || e.target.classList.contains('lightbox-content')) {
+                closeLightbox();
+            }
         });
 
-        // --- 手勢滑動邏輯 (Touch Events) ---
+        // --- 手勢滑動 ---
         let touchStartX = 0;
         let touchEndX = 0;
 
@@ -573,21 +634,18 @@
         }, {passive: true});
 
         function handleSwipe() {
-            const swipeThreshold = 50; // 滑動超過 50px 才算數
+            const swipeThreshold = 50; 
             const diff = touchStartX - touchEndX;
 
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0) {
-                    // 向左滑 (下一張)
-                    changePhoto(1);
+                    changePhoto(1); // 左滑 = 下一張
                 } else {
-                    // 向右滑 (上一張)
-                    changePhoto(-1);
+                    changePhoto(-1); // 右滑 = 上一張
                 }
             }
         }
         
-        // 鍵盤左右鍵支援
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;
             if (e.key === 'ArrowLeft') changePhoto(-1);
