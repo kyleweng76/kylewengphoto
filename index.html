@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kyle's Gallery</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/685/685655.png">
+
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --accent-color: #999;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "San Francisco", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 標題與導航 */
+        header {
+            padding: 30px 20px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+        
+        header h1 {
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin: 0;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 30px;
+            font-size: 1rem;
+            color: #ccc;
+            cursor: pointer;
+            display: none; /* 預設隱藏 */
+        }
+
+        /* --- 首頁：相簿列表樣式 --- */
+        .album-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .album-card {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .album-card:active { transform: scale(0.98); }
+
+        .album-card img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .album-card:hover img { opacity: 1; }
+
+        .album-title {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* --- 內頁：照片牆樣式 --- */
+        .gallery-view {
+            display: none; /* 預設隱藏 */
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* 手機上顯示多一點 */
+            gap: 2px;
+            padding-bottom: 50px;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background: #111;
+            cursor: pointer;
+        }
+
+        .photo-item img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0; /* Lazy load transition */
+            transition: opacity 0.5s ease;
+        }
+        
+        .photo-item img.loaded { opacity: 1; }
+
+        /* Lightbox (維持不變) */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 100%; max-height: 80vh;
+            object-fit: contain;
+        }
+        .action-bar { margin-top: 20px; display: flex; gap: 15px; }
+        .btn {
+            background: rgba(255,255,255,0.15);
+            color: white; padding: 10px 24px;
+            border-radius: 30px; text-decoration: none;
+            font-size: 14px;
+        }
+        .close-btn {
+            position: absolute; top: 20px; right: 20px;
+            font-size: 30px; padding: 10px; cursor: pointer;
+        }
+
+        /* 工具類別 */
+        .hidden { display: none !important; }
+        .loading { text-align: center; padding: 40px; color: #666; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div id="back-btn" class="back-btn" onclick="goHome()">← 返回</div>
+        <h1 onclick="goHome()">KYLE PHOTO</h1>
+    </header>
+
+    <div id="home-view" class="album-list">
+        </div>
+
+    <div id="gallery-view" class="gallery-view">
+        <div id="gallery-grid" class="gallery-grid"></div>
+    </div>
+
+    <div id="lightbox" class="lightbox">
+        <div class="close-btn" onclick="closeLightbox()">&times;</div>
+        <img id="lightbox-img" src="" alt="">
+        <div class="action-bar">
+            <a id="download-btn" href="#" target="_blank" class="btn">下載原始檔</a>
+        </div>
+        <p style="font-size: 12px; color: #666; margin-top: 15px;">iPhone 用戶請長按圖片儲存</p>
+    </div>
+
+    <script>
+        // ================= 設定區 =================
+        const API_KEY = 'f26141b4efcea9ac125fd95bf777eb55'; 
+        const USER_ID = '135451339@N02'; 
+
+        // ★ 這裡設定你的相簿列表 (可以無限新增)
+        // cover: 請填入該相簿中，你想當封面的那張照片網址 (建議用 url_m 或 url_z)
+        const ALBUMS = [
+            {
+                id: '72177720330670119', // 範例相簿 ID
+                title: '2025 Kaohsiung Pride',
+                cover: 'https://live.staticflickr.com/65535/54321_example_m.jpg' // <-- 記得換成真實圖片網址
+            },
+            {
+                id: '72177720330670119', // 若有第二本，把 ID 貼這
+                title: 'Portrait / 個人寫真',
+                cover: 'https://live.staticflickr.com/65535/12345_example_m.jpg'
+            }
+        ];
+        // ==========================================
+
+        const homeView = document.getElementById('home-view');
+        const galleryView = document.getElementById('gallery-view');
+        const galleryGrid = document.getElementById('gallery-grid');
+        const backBtn = document.getElementById('back-btn');
+
+        // 1. 初始化：檢查網址是否有 ?album=xxx
+        function init() {
+            const params = new URLSearchParams(window.location.search);
+            const albumId = params.get('album');
+
+            if (albumId) {
+                loadAlbum(albumId);
+            } else {
+                renderHome();
+            }
+        }
+
+        // 2. 渲染首頁 (相簿列表)
+        function renderHome() {
+            // 切換顯示狀態
+            homeView.style.display = 'grid';
+            galleryView.style.display = 'none';
+            backBtn.style.display = 'none';
+            document.title = "Kyle's Gallery";
+            
+            // 清空並重新產生列表
+            homeView.innerHTML = '';
+            
+            ALBUMS.forEach(album => {
+                // 如果沒有設定封面，就用灰色佔位圖
+                const coverImg = album.cover || 'https://via.placeholder.com/400x300/333/999?text=No+Cover';
+                
+                const card = document.createElement('div');
+                card.className = 'album-card';
+                card.innerHTML = `
+                    <img src="${coverImg}" loading="lazy">
+                    <div class="album-title">${album.title}</div>
+                `;
+                // 點擊後跳轉網址（不重新整理頁面，使用 pushState 也可以，這裡用簡單的 href 跳轉讓網址變更）
+                card.onclick = () => {
+                    // 修改網址但不刷新頁面
+                    const newUrl = `${window.location.pathname}?album=${album.id}`;
+                    window.history.pushState({path: newUrl}, '', newUrl);
+                    loadAlbum(album.id);
+                };
+                homeView.appendChild(card);
+            });
+        }
+
+        // 3. 載入特定相簿
+        async function loadAlbum(photosetId) {
+            // 切換 UI
+            homeView.style.display = 'none';
+            galleryView.style.display = 'block';
+            backBtn.style.display = 'block';
+            galleryGrid.innerHTML = '<div class="loading">載入照片中...</div>';
+
+            // 呼叫 API
+            const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=${API_KEY}&photoset_id=${photosetId}&user_id=${USER_ID}&extras=url_q,url_k,url_o&format=json&nojsoncallback=1`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.stat !== 'ok') throw new Error(data.message);
+
+                galleryGrid.innerHTML = ''; // 清空 loading
+                document.title = data.photoset.title + " | Kyle"; // 更新網頁標題
+
+                data.photoset.photo.forEach(photo => {
+                    // url_q (150x150 crop) 適合做列表縮圖，載入最快
+                    // 如果沒有 url_o，就退回 url_k
+                    const thumbUrl = photo.url_q || photo.url_m; 
+                    const fullSizeUrl = photo.url_o || photo.url_k; 
+                    
+                    if(!thumbUrl) return;
+
+                    const div = document.createElement('div');
+                    div.className = 'photo-item';
+                    
+                    // 圖片
+                    const img = document.createElement('img');
+                    img.src = thumbUrl;
+                    img.onload = () => img.classList.add('loaded'); // 載入完成後才顯示(淡入效果)
+                    
+                    div.appendChild(img);
+                    div.onclick = () => openLightbox(fullSizeUrl);
+                    galleryGrid.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error(error);
+                galleryGrid.innerHTML = `<div class="loading">讀取失敗或權限不足<br><small>${error.message}</small></div>`;
+            }
+        }
+
+        // 4. 返回首頁
+        function goHome() {
+            // 清除網址參數
+            const newUrl = window.location.pathname;
+            window.history.pushState({path: newUrl}, '', newUrl);
+            renderHome();
+        }
+
+        // --- Lightbox 相關邏輯 (保持原樣) ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const downloadBtn = document.getElementById('download-btn');
+
+        function openLightbox(url) {
+            lightboxImg.src = url;
+            downloadBtn.href = url;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            lightboxImg.src = '';
+            document.body.style.overflow = '';
+        }
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        // 監聽瀏覽器上一頁按鈕 (處理 Android/Desktop 的實體返回鍵)
+        window.onpopstate = function(event) {
+            init();
+        };
+
+        // 啟動
+        init();
+
+    </script>
+</body>
+</html>
