@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- ★ 修改 1: 更新網站標題 -->
     <title>Kylewengphoto攝情</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -186,22 +187,21 @@
         }
         .photo-item img.loaded { opacity: 1; }
 
-        /* --- Lightbox 修正版 --- */
+        /* --- Lightbox 修正版 V3 (無縫滑動) --- */
         .lightbox {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.98);
             z-index: 1000;
-            /* 改為 Flex Column 佈局，確保上下不會重疊 */
-            display: flex; /* 這裡預設要是 flex，但透過 active class 控制顯示 */
+            display: flex;
             flex-direction: column;
-            justify-content: space-between; /* 內容上下撐開 */
+            justify-content: space-between;
             align-items: center;
-            padding: 20px 0; /* 上下留白 */
+            padding: 20px 0;
             box-sizing: border-box;
             
-            visibility: hidden; /* 預設隱藏 */
+            visibility: hidden; 
             opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s;
 
@@ -214,60 +214,72 @@
             opacity: 1;
         }
         
-        /* 圖片容器：佔據中間所有剩餘空間 */
+        /* 圖片容器：這裡設定為 relative，讓內部的圖片可以 absolute 疊在一起 */
         .lightbox-content {
             flex: 1;
             width: 100%;
+            position: relative; 
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            position: relative;
+            overflow: hidden; /* 確保滑動時不會超出邊界 */
         }
 
-        .lightbox img {
-            max-width: 100%; 
-            /* ★ 關鍵修正：高度扣掉上下保留區 (Close btn + Action bar) */
-            /* 100dvh 代表裝置的可視高度，比 100vh 在手機上更準確 */
-            max-height: calc(100dvh - 140px); 
+        /* 圖片樣式：改為絕對定位，讓兩張圖可以重疊進行轉場 */
+        .lightbox-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
+            /* 扣掉上下介面高度，避免被遮擋 */
+            padding: 0 10px; /* 左右留一點點邊距 */
+            box-sizing: border-box;
             
             /* 預設狀態 */
-            opacity: 1;
-            transform: translateX(0);
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+            transform: translate3d(0, 0, 0);
+            will-change: transform, opacity;
         }
 
-        /* ★ 新增：滑動動畫樣式 */
-        /* 往左滑 (下一張)：舊圖往左出，新圖從右入 */
-        .anim-slide-left-out { transform: translateX(-20%) scale(0.9); opacity: 0 !important; }
-        .anim-slide-left-in  { animation: slideInRight 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        /* ★ 柔和的滑動動畫 (使用 translate3d 啟用硬體加速) */
+        /* 下一張 (往左滑)：舊圖去左邊，新圖從右邊來 */
+        .slide-next-enter { animation: slideInFromRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .slide-next-exit  { animation: slideOutToLeft 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        /* 往右滑 (上一張)：舊圖往右出，新圖從左入 */
-        .anim-slide-right-out { transform: translateX(20%) scale(0.9); opacity: 0 !important; }
-        .anim-slide-right-in  { animation: slideInLeft 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        /* 上一張 (往右滑)：舊圖去右邊，新圖從左邊來 */
+        .slide-prev-enter { animation: slideInFromLeft 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .slide-prev-exit  { animation: slideOutToRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        @keyframes slideInRight {
-            from { transform: translateX(30px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes slideInFromRight {
+            from { transform: translate3d(100%, 0, 0); }
+            to { transform: translate3d(0, 0, 0); }
+        }
+        @keyframes slideOutToLeft {
+            from { transform: translate3d(0, 0, 0); opacity: 1; }
+            to { transform: translate3d(-100%, 0, 0); opacity: 0; }
         }
 
-        @keyframes slideInLeft {
-            from { transform: translateX(-30px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes slideInFromLeft {
+            from { transform: translate3d(-100%, 0, 0); }
+            to { transform: translate3d(0, 0, 0); }
+        }
+        @keyframes slideOutToRight {
+            from { transform: translate3d(0, 0, 0); opacity: 1; }
+            to { transform: translate3d(100%, 0, 0); opacity: 0; }
         }
 
-        /* 底部操作區：固定高度，避免被圖片壓住 */
+        /* 底部操作區 */
         .action-bar { 
-            height: 80px; /* 固定高度區 */
+            height: 80px; 
             width: 100%;
             display: flex; 
             justify-content: center;
             align-items: center;
             flex-direction: column;
             z-index: 1001;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8)); /* 底部稍微漸層黑，增加對比 */
-            flex-shrink: 0; /* 防止被壓縮 */
+            background: linear-gradient(transparent, rgba(0,0,0,0.8)); 
+            flex-shrink: 0; 
         }
 
         .btn {
@@ -334,8 +346,8 @@
         <div id="back-btn" class="back-btn" onclick="goHome()">←</div>
         
         <h1 onclick="goHome()">
-            <img src="kw_web_white_s.png" alt="KYLE PHOTO" class="site-logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
-            <span id="text-logo" class="fallback-title">KYLE PHOTO</span>
+            <img src="kw_web_white_s.png" alt="Kylewengphoto攝情" class="site-logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
+            <span id="text-logo" class="fallback-title">Kylewengphoto攝情</span>
         </h1>
         
         <div id="category-tabs" class="category-tabs">
@@ -358,9 +370,9 @@
         <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
         <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
 
-        <!-- 包一個容器來控制版面，避免圖片亂跑 -->
-        <div class="lightbox-content">
-            <img id="lightbox-img" src="" alt="">
+        <!-- 圖片容器 (注意：這裡不再放固定的 img，而是由 JS 動態產生) -->
+        <div id="lightbox-content" class="lightbox-content">
+            <!-- Images will be injected here -->
         </div>
 
         <div class="action-bar">
@@ -375,6 +387,9 @@
         // ================= 設定區 =================
         const API_KEY = 'f26141b4efcea9ac125fd95bf777eb55'; 
         const USER_ID = '135451339@N02'; 
+        
+        // ★ 修改 2: 全域標題名稱設定
+        const SITE_TITLE = "Kylewengphoto攝情";
 
         const EVENT_KEYWORDS = [
             'Pride', 'Parade', 'Championship', 'Championshop', 
@@ -390,6 +405,7 @@
         let currentFilter = 'all';
         let currentAlbumPhotos = []; 
         let currentPhotoIndex = 0;
+        let isAnimating = false; // 防止快速連點
 
         const homeView = document.getElementById('home-view');
         const galleryView = document.getElementById('gallery-view');
@@ -418,6 +434,7 @@
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
             categoryTabs.style.display = 'flex'; 
+            document.title = SITE_TITLE;
 
             if (cachedAlbums.length > 0) {
                 filterAlbums(currentFilter);
@@ -503,7 +520,7 @@
                 if (data.stat !== 'ok') throw new Error(data.message);
 
                 galleryGrid.innerHTML = ''; 
-                document.title = data.photoset.title + " | Kyle";
+                document.title = data.photoset.title + " | " + SITE_TITLE;
                 
                 currentAlbumPhotos = [];
 
@@ -541,50 +558,66 @@
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
             categoryTabs.style.display = 'flex'; 
-            document.title = "Kyle's Gallery";
+            document.title = SITE_TITLE;
         }
 
-        // ================= Lightbox 滑動動畫邏輯 =================
+        // ================= Lightbox 核心重寫 =================
         const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxContent = document.getElementById('lightbox-content');
         const downloadBtn = document.getElementById('download-btn');
 
         function openLightbox(index) {
             currentPhotoIndex = index;
-            // 歸零動畫 class
-            lightboxImg.className = '';
-            updateLightboxContent(false); // false = 不播動畫 (第一張直接顯示)
+            lightboxContent.innerHTML = ''; // 清空
+            renderLightboxPhoto(false); // 直接顯示，無動畫
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
+            isAnimating = false;
         }
 
-        function updateLightboxContent(animate = false, direction = 1) {
+        function renderLightboxPhoto(animate = false, direction = 1) {
             const photo = currentAlbumPhotos[currentPhotoIndex];
-            
-            // 下載連結直接更新
             downloadBtn.href = photo.download;
 
-            if (animate) {
-                // 如果需要動畫：先加上「移出」的動畫
-                // direction 1 = 下一張 (往左滑)
-                // direction -1 = 上一張 (往右滑)
-                
-                // 1. 先把舊圖 fade out / slide out
-                lightboxImg.className = direction === 1 ? 'anim-slide-left-out' : 'anim-slide-right-out';
+            // 1. 建立新圖片元素
+            const newImg = document.createElement('img');
+            newImg.src = photo.preview;
+            newImg.className = 'lightbox-img';
+            newImg.draggable = false; // 禁止拖曳圖片本身
 
-                // 2. 短暫延遲後換圖，並 slide in
-                setTimeout(() => {
-                    lightboxImg.src = photo.preview;
-                    lightboxImg.className = direction === 1 ? 'anim-slide-left-in' : 'anim-slide-right-in';
-                }, 200); // 這個時間要配合 CSS transition
+            if (animate) {
+                isAnimating = true;
                 
+                // 設定新圖片的進場動畫 class
+                newImg.classList.add(direction === 1 ? 'slide-next-enter' : 'slide-prev-enter');
+                
+                // 取得舊圖片 (目前還在畫面上的)
+                const oldImg = lightboxContent.querySelector('img');
+                
+                if (oldImg) {
+                    // 設定舊圖片的退場動畫 class
+                    oldImg.classList.add(direction === 1 ? 'slide-next-exit' : 'slide-prev-exit');
+                    
+                    // 動畫結束後移除舊圖片
+                    setTimeout(() => {
+                        if(oldImg && oldImg.parentNode) oldImg.remove();
+                        // 移除新圖片的動畫 class，保持乾淨狀態
+                        newImg.classList.remove('slide-next-enter', 'slide-prev-enter');
+                        isAnimating = false;
+                    }, 400); // 這裡的時間要跟 CSS animation 時間一致
+                } else {
+                    isAnimating = false;
+                }
+                
+                // 加入新圖片
+                lightboxContent.appendChild(newImg);
             } else {
-                // 不需要動畫 (剛打開時)
-                lightboxImg.src = photo.preview;
-                lightboxImg.className = ''; 
+                // 不動畫，直接替換
+                lightboxContent.innerHTML = '';
+                lightboxContent.appendChild(newImg);
             }
 
-            // 預載
+            // 預載鄰近圖片 (靜默載入)
             preloadImage(currentPhotoIndex + 1);
             preloadImage(currentPhotoIndex - 1);
         }
@@ -597,25 +630,26 @@
         }
 
         function changePhoto(direction) {
+            if (isAnimating) return; // 動畫中禁止切換
+
             let newIndex = currentPhotoIndex + direction;
             if (newIndex < 0) return; 
             if (newIndex >= currentAlbumPhotos.length) return; 
 
             currentPhotoIndex = newIndex;
-            // 傳入 true (要動畫) 和方向
-            updateLightboxContent(true, direction);
+            renderLightboxPhoto(true, direction);
         }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
-            lightboxImg.src = '';
-            lightboxImg.className = ''; // 清除動畫
+            setTimeout(() => {
+                lightboxContent.innerHTML = ''; // 關閉動畫結束後清空
+            }, 300);
             document.body.style.overflow = '';
         }
 
         lightbox.addEventListener('click', (e) => {
-            // 點擊背景 (不是圖片也不是按鈕) 時關閉
-            if (e.target === lightbox || e.target.classList.contains('lightbox-content')) {
+            if (e.target === lightbox || e.target === lightboxContent) {
                 closeLightbox();
             }
         });
@@ -623,17 +657,23 @@
         // --- 手勢滑動 ---
         let touchStartX = 0;
         let touchEndX = 0;
+        let touchStartY = 0;
 
         lightbox.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
         }, {passive: true});
 
         lightbox.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            const touchEndY = e.changedTouches[0].screenY;
+            handleSwipe(touchEndY - touchStartY);
         }, {passive: true});
 
-        function handleSwipe() {
+        function handleSwipe(verticalDiff) {
+            // 如果垂直滑動太多，就不算切換照片 (可能是在滑動瀏覽器)
+            if (Math.abs(verticalDiff) > 100) return;
+
             const swipeThreshold = 50; 
             const diff = touchStartX - touchEndX;
 
