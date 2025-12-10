@@ -148,18 +148,15 @@
             max-width: 800px; 
         }
 
-        /* ★ 修改：正方形網格照片牆 (Square Grid Wall) */
+        /* 照片牆樣式 */
         #home-view.photostream-mode {
-            display: grid; /* Grid 模式 */
+            display: grid; 
             max-width: 100%;
             padding: 0; 
-            
-            /* 手機改為 2 列 */
             grid-template-columns: repeat(2, 1fr);
-            gap: 1px; /* 1px 極窄縫隙 */
+            gap: 1px;
         }
 
-        /* 自適應列數 (首頁) */
         @media (min-width: 600px) { #home-view.photostream-mode { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 900px) { #home-view.photostream-mode { grid-template-columns: repeat(4, 1fr); } }
         @media (min-width: 1200px) { #home-view.photostream-mode { grid-template-columns: repeat(5, 1fr); } }
@@ -170,13 +167,13 @@
             cursor: pointer;
             overflow: hidden;
             background: #111;
-            aspect-ratio: 1 / 1; /* ★ 強制正方形 */
+            aspect-ratio: 1 / 1;
         }
 
         .stream-img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* ★ 裁切填滿 */
+            object-fit: cover;
             display: block;
             transition: opacity 0.5s ease;
             opacity: 0; 
@@ -262,7 +259,7 @@
             transform: scale(0.98);
         }
 
-        /* --- 內頁：相簿內容 (統一為 2 列照片牆風格) --- */
+        /* --- 內頁：相簿內容 --- */
         .gallery-view {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -270,20 +267,18 @@
 
         .gallery-grid {
             display: grid;
-            /* ★ 手機統一 2 列 */
             grid-template-columns: repeat(2, 1fr);
             gap: 1px;
             padding-bottom: 50px;
         }
 
-        /* 自適應列數 (內頁) */
         @media (min-width: 600px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 900px) { .gallery-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (min-width: 1200px) { .gallery-grid { grid-template-columns: repeat(5, 1fr); } }
 
         .photo-item {
             position: relative;
-            aspect-ratio: 1 / 1; /* 正方形 */
+            aspect-ratio: 1 / 1;
             overflow: hidden;
             background: #111;
             cursor: pointer;
@@ -291,22 +286,26 @@
 
         .photo-item img {
             width: 100%; height: 100%;
-            object-fit: cover; /* 滿版裁切 */
+            object-fit: cover;
             opacity: 0; 
             transition: opacity 0.5s ease;
         }
         .photo-item img.loaded { opacity: 1; }
 
-        /* --- Lightbox --- */
+        /* --- ★ Lightbox 修復版 --- */
         .lightbox {
-            display: none;
+            display: block; /* 修正：常駐顯示，改用 visibility 控制 */
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; /* 純黑背景 */
+            background: #000;
             z-index: 1000;
             padding: 0;
+            
+            /* 預設隱藏狀態 */
             visibility: hidden; 
             opacity: 0;
+            pointer-events: none; /* 修正：隱藏時讓點擊穿透 */
+            
             transition: opacity 0.3s ease, visibility 0.3s;
             user-select: none; 
             -webkit-user-select: none;
@@ -315,6 +314,7 @@
         .lightbox.active { 
             visibility: visible;
             opacity: 1;
+            pointer-events: auto; /* 修正：開啟時才感應點擊 */
         }
         
         .lightbox-content {
@@ -350,7 +350,6 @@
         @keyframes slideInFromLeft { from { transform: translate3d(-100%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
         @keyframes slideOutToRight { from { transform: translate3d(0, 0, 0); opacity: 1; } to { transform: translate3d(100%, 0, 0); opacity: 0; } }
 
-        /* 底部操作區 (浮動) */
         .action-bar { 
             position: absolute;
             bottom: 0; left: 0; width: 100%;
