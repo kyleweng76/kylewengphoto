@@ -17,6 +17,7 @@
             --text-color: #ffffff;
             --accent-color: #333;
             --active-color: #fff;
+            --card-bg: #111;
         }
 
         body {
@@ -37,6 +38,7 @@
             position: sticky;
             top: 0;
             z-index: 50;
+            border-bottom: 1px solid #222;
         }
         
         header h1 {
@@ -133,52 +135,102 @@
             font-weight: 500;
         }
 
-        /* --- 相簿列表 --- */
+        /* --- 首頁：動態牆列表 (Feed Style) --- */
         .album-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
             padding: 20px;
-            max-width: 1200px;
+            max-width: 800px; /* 閱讀區塊限制寬度 */
             margin: 0 auto;
             animation: fadeIn 0.5s ease;
+            padding-bottom: 80px;
         }
 
-        .album-card {
-            position: relative;
-            aspect-ratio: 16 / 9;
-            background: #1a1a1a;
-            border-radius: 8px;
+        .feed-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); 
+        }
+
+        /* ★ 修改：讓圖片容器自動適應高度，不強制比例 */
+        .feed-img-container {
+            width: 100%;
+            /* aspect-ratio: 16 / 9;  <-- 移除這行強制比例 */
+            min-height: 200px; /* 給個最小高度避免載入時閃爍太嚴重 */
+            background: #222; /* 載入前的底色 */
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s;
+            position: relative;
         }
 
-        .album-card:active { transform: scale(0.98); }
-
-        .album-card img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            opacity: 0.7;
-            transition: opacity 0.3s, transform 0.5s;
+        /* ★ 修改：讓圖片高度自動 (height: auto) */
+        .feed-img {
+            width: 100%; 
+            height: auto; /* 自動高度，保持原比例 */
+            display: block; /* 消除圖片底部的微小縫隙 */
+            /* object-fit: cover; <-- 移除，因為我們現在要完整呈現 */
+            transition: transform 0.5s ease;
+        }
+        
+        .feed-img-container:hover .feed-img {
+            transform: scale(1.02); /* 輕微放大就好，太大會模糊 */
         }
 
-        .album-card:hover img { 
-            opacity: 1; 
-            transform: scale(1.03); 
+        .feed-content {
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
-        .album-title {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 20px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            font-size: 1.1rem;
-            font-weight: 500;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        .feed-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            line-height: 1.3;
+            color: #fff;
         }
 
-        /* --- 內頁：照片牆 --- */
+        .feed-desc {
+            font-size: 1rem;
+            color: #bbb;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-line; 
+            width: 100%;
+        }
+
+        .enter-btn {
+            background: transparent;
+            color: var(--active-color);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .enter-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+        }
+        
+        .enter-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* --- 內頁：照片牆 (Grid) --- */
         .gallery-view {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -226,11 +278,9 @@
             align-items: center;
             padding: 20px 0;
             box-sizing: border-box;
-            
             visibility: hidden; 
             opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s;
-
             user-select: none; 
             -webkit-user-select: none;
         }
@@ -286,7 +336,6 @@
             flex-shrink: 0; 
         }
 
-        /* ★ 手機橫向模式 (Landscape) 優化 */
         @media (orientation: landscape) and (max-height: 500px) {
             .lightbox { padding: 0; justify-content: flex-end; }
             .lightbox-img { padding: 0; }
@@ -311,7 +360,6 @@
         }
         .btn:active { background: rgba(255,255,255,0.3); transform: scale(0.98); }
         
-        /* 關閉按鈕 */
         .close-btn {
             position: absolute; top: 15px; right: 15px;
             font-size: 36px; padding: 10px; cursor: pointer;
@@ -389,14 +437,10 @@
     <div id="lightbox" class="lightbox">
         <div class="close-btn" onclick="closeLightbox()">&times;</div>
         
-        <!-- 移除旋轉按鈕 -->
-
         <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
         <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
 
-        <div id="lightbox-content" class="lightbox-content">
-            <!-- Images injected via JS -->
-        </div>
+        <div id="lightbox-content" class="lightbox-content"></div>
 
         <div class="action-bar">
             <a id="download-btn" href="#" target="_blank" class="btn" download>
@@ -407,7 +451,6 @@
     </div>
 
     <script>
-        // ================= 設定區 =================
         const API_KEY = 'f26141b4efcea9ac125fd95bf777eb55'; 
         const USER_ID = '135451339@N02'; 
         const SITE_TITLE = "Kylewengphoto攝情";
@@ -420,14 +463,12 @@
             '跨年', '法案', '現場', '音樂會', '小蜜蜂', '平權', 
             '國慶', '龍舟隊', '選拔', '練習', '屆', '路跑', '站出來'
         ];
-        // ==========================================
 
         let cachedAlbums = [];
         let currentFilter = 'all';
         let currentAlbumPhotos = []; 
         let currentPhotoIndex = 0;
         let isAnimating = false;
-        // let isRotated = false; // 移除
 
         const homeView = document.getElementById('home-view');
         const galleryView = document.getElementById('gallery-view');
@@ -453,7 +494,7 @@
         }
 
         async function fetchAlbumsAndRender() {
-            homeView.style.display = 'grid';
+            homeView.style.display = 'flex'; 
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
             categoryTabs.style.display = 'flex';
@@ -467,7 +508,8 @@
 
             homeView.innerHTML = '<div class="loading">正在整理相簿...</div>';
 
-            const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getList&api_key=${API_KEY}&user_id=${USER_ID}&primary_photo_extras=url_m,url_o&format=json&nojsoncallback=1`;
+            // ★ 修改：加入 url_l 來獲取高畫質封面
+            const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getList&api_key=${API_KEY}&user_id=${USER_ID}&primary_photo_extras=url_m,url_l,url_o&format=json&nojsoncallback=1`;
 
             try {
                 const response = await fetch(url);
@@ -476,15 +518,23 @@
                 if (data.stat !== 'ok') throw new Error(data.message);
 
                 cachedAlbums = data.photosets.photoset.map(set => {
-                    const cover = set.primary_photo_extras?.url_m || set.primary_photo_extras?.url_o || '';
+                    // ★ 優先使用 url_l (1024px) 作為封面，這樣全寬顯示才不會糊
+                    const cover = set.primary_photo_extras?.url_l || set.primary_photo_extras?.url_m || set.primary_photo_extras?.url_o || '';
                     const title = set.title._content;
+                    const desc = set.description._content || "（此相簿暫無描述）";
                     
                     let type = 'portrait';
                     if (EVENT_KEYWORDS.some(keyword => title.toLowerCase().includes(keyword.toLowerCase()))) {
                         type = 'event';
                     }
 
-                    return { id: set.id, title: title, cover: cover, type: type };
+                    return { 
+                        id: set.id, 
+                        title: title, 
+                        cover: cover, 
+                        desc: desc, 
+                        type: type 
+                    };
                 });
 
                 filterAlbums('all'); 
@@ -516,17 +566,30 @@
             }
             albums.forEach(album => {
                 const coverImg = album.cover || 'https://placehold.co/600x400/333/FFF?text=No+Cover';
+                
                 const card = document.createElement('div');
-                card.className = 'album-card';
-                card.innerHTML = `<img src="${coverImg}" loading="lazy" alt="${album.title}"><div class="album-title">${album.title}</div>`;
-                card.onclick = () => {
-                    const newUrl = `?album=${album.id}`;
-                    safePushState({path: newUrl}, '', newUrl);
-                    loadAlbumPhotos(album.id);
-                };
+                card.className = 'feed-card';
+                card.innerHTML = `
+                    <div class="feed-img-container" onclick="openAlbum('${album.id}')">
+                        <img src="${coverImg}" class="feed-img" loading="lazy" alt="${album.title}">
+                    </div>
+                    <div class="feed-content">
+                        <div class="feed-title">${album.title}</div>
+                        <div class="feed-desc">${album.desc}</div>
+                        <button class="enter-btn" onclick="openAlbum('${album.id}')">
+                            查看完整相簿 &#10140;
+                        </button>
+                    </div>
+                `;
                 homeView.appendChild(card);
             });
         }
+
+        window.openAlbum = function(id) {
+            const newUrl = `?album=${id}`;
+            safePushState({path: newUrl}, '', newUrl);
+            loadAlbumPhotos(id);
+        };
 
         async function loadAlbumPhotos(photosetId) {
             homeView.style.display = 'none';
@@ -579,7 +642,7 @@
         function goHome() {
             const newUrl = window.location.pathname; 
             safePushState({path: newUrl}, '', newUrl);
-            homeView.style.display = 'grid';
+            homeView.style.display = 'flex';
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
             categoryTabs.style.display = 'flex'; 
@@ -587,7 +650,7 @@
             document.title = SITE_TITLE;
         }
 
-        // ================= Lightbox 邏輯 =================
+        // Lightbox Logic
         const lightbox = document.getElementById('lightbox');
         const lightboxContent = document.getElementById('lightbox-content');
         const downloadBtn = document.getElementById('download-btn');
@@ -595,7 +658,6 @@
         function openLightbox(index) {
             currentPhotoIndex = index;
             lightboxContent.innerHTML = ''; 
-            // isRotated = false; // 移除
             renderLightboxPhoto(false); 
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -611,8 +673,6 @@
             newImg.className = 'lightbox-img';
             newImg.draggable = false;
             
-            // if (isRotated) newImg.classList.add('rotated'); // 移除
-
             if (animate) {
                 isAnimating = true;
                 newImg.classList.add(direction === 1 ? 'slide-next-enter' : 'slide-prev-enter');
@@ -637,8 +697,6 @@
             preloadImage(currentPhotoIndex - 1);
         }
 
-        // function toggleRotate() { ... } // 移除
-
         function preloadImage(index) {
             if (index >= 0 && index < currentAlbumPhotos.length) {
                 const img = new Image();
@@ -651,9 +709,6 @@
             let newIndex = currentPhotoIndex + direction;
             if (newIndex < 0) return; 
             if (newIndex >= currentAlbumPhotos.length) return; 
-            
-            // isRotated = false; // 移除
-            
             currentPhotoIndex = newIndex;
             renderLightboxPhoto(true, direction);
         }
