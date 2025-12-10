@@ -148,18 +148,18 @@
             max-width: 800px; 
         }
 
-        /* ★ 修改：高密度拼貼牆樣式 (Collage Wall) */
+        /* ★ 修改：極致密合照片牆 (Tight Wall) */
         #home-view.photostream-mode {
             display: block; 
-            max-width: 100%; /* 全螢幕寬度 */
-            padding: 2px; /* 極窄邊距 */
+            max-width: 100%;
+            padding: 0; /* 移除外圍留白，滿版 */
             
-            /* CSS Columns 瀑布流 */
-            column-count: 3; /* 手機預設 3 列 (高密度) */
-            column-gap: 2px; /* 拼貼縫隙極小 */
+            /* 調整間距為 1px */
+            column-gap: 1px; 
+            column-count: 3; /* 手機 3 列 */
         }
 
-        /* 自適應：螢幕越大，列數越多 */
+        /* 自適應列數 */
         @media (min-width: 600px) {
             #home-view.photostream-mode { column-count: 4; }
         }
@@ -170,24 +170,26 @@
             #home-view.photostream-mode { column-count: 6; }
         }
         @media (min-width: 1600px) {
-            #home-view.photostream-mode { column-count: 8; } /* 超大螢幕 8 列 */
+            #home-view.photostream-mode { column-count: 8; }
         }
 
         .stream-item {
             break-inside: avoid;
-            margin-bottom: 2px; /* 垂直縫隙極小 */
+            margin-bottom: 1px; /* 垂直間距 1px */
             position: relative;
             cursor: pointer;
             overflow: hidden;
-            border-radius: 0; /* 移除圓角，更像拼貼牆 */
+            border-radius: 0; /* 直角 */
             background: #111;
+            /* 讓圖片載入前佔位，避免版面跳動 (選用) */
+            min-height: 50px; 
         }
 
         .stream-img {
             width: 100%;
             height: auto;
-            display: block;
-            transition: opacity 0.5s ease; /* 移除 hover 放大，保持牆面平整 */
+            display: block; /* 消除圖片底部縫隙 */
+            transition: opacity 0.5s ease;
             opacity: 0; 
         }
         .stream-img.loaded { opacity: 1; }
