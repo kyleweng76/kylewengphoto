@@ -259,29 +259,7 @@
             box-sizing: border-box;
             transform: translate3d(0, 0, 0);
             will-change: transform, opacity;
-            transition: transform 0.3s ease; /* 增加平滑轉場 */
-        }
-
-        /* ★ 新增功能：旋轉放大模式 (Rotate Mode) */
-        .lightbox-img.rotated {
-            /* 交換寬高，並強迫填滿螢幕 */
-            width: 100vh !important; 
-            height: 100vw !important;
-            
-            /* 置中並旋轉 */
-            position: fixed; /* 改用 fixed 脫離容器限制 */
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) rotate(90deg) !important;
-            
-            /* 移除邊距限制 */
-            padding: 0 !important;
-            max-width: none !important;
-            max-height: none !important;
-            
-            z-index: 1500; /* 最上層 */
-            background: #000; /* 避免背後透光 */
-            object-fit: contain;
+            transition: transform 0.3s ease;
         }
 
         /* 滑動動畫 */
@@ -318,8 +296,6 @@
                 background: linear-gradient(transparent, rgba(0,0,0,0.8)); 
             }
             .close-btn { top: 10px; right: 20px; }
-            /* 橫向時隱藏旋轉按鈕 (因為已經橫了) */
-            .rotate-btn { display: none !important; }
         }
 
         .btn {
@@ -347,20 +323,6 @@
             background: rgba(0,0,0,0.3);
             border-radius: 50%;
         }
-
-        /* ★ 新增：旋轉按鈕 */
-        .rotate-btn {
-            position: absolute; top: 15px; right: 70px; /* 放在關閉按鈕左邊 */
-            font-size: 24px; padding: 10px; cursor: pointer;
-            z-index: 1002;
-            color: white;
-            opacity: 0.8;
-            height: 44px; width: 44px;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50%;
-        }
-        .rotate-btn svg { width: 24px; height: 24px; fill: white; }
 
         .nav-btn {
             position: absolute;
@@ -427,10 +389,7 @@
     <div id="lightbox" class="lightbox">
         <div class="close-btn" onclick="closeLightbox()">&times;</div>
         
-        <!-- ★ 新增：旋轉按鈕 -->
-        <div class="rotate-btn" onclick="toggleRotate()">
-            <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.49-1.72 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.75-.87-1.59-1.01-2.47zm1.01 5.32c1.16.9 2.51 1.44 3.9 1.61V17.9c-.87-.15-1.71-.49-2.46-1.03L7.1 18.32zM13 4.07V1L8.45 5.55 13 10V6.09c2.84.48 5 2.94 5 5.91s-2.16 5.43-5 5.91v2.02c3.95-.49 7-3.85 7-7.93s-3.05-7.44-7-7.93z"/></svg>
-        </div>
+        <!-- 移除旋轉按鈕 -->
 
         <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
         <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
@@ -468,7 +427,7 @@
         let currentAlbumPhotos = []; 
         let currentPhotoIndex = 0;
         let isAnimating = false;
-        let isRotated = false; // 追蹤旋轉狀態
+        // let isRotated = false; // 移除
 
         const homeView = document.getElementById('home-view');
         const galleryView = document.getElementById('gallery-view');
@@ -636,7 +595,7 @@
         function openLightbox(index) {
             currentPhotoIndex = index;
             lightboxContent.innerHTML = ''; 
-            isRotated = false; // 重置旋轉狀態
+            // isRotated = false; // 移除
             renderLightboxPhoto(false); 
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -652,8 +611,7 @@
             newImg.className = 'lightbox-img';
             newImg.draggable = false;
             
-            // 如果當前是旋轉模式，新圖片也要套用旋轉
-            if (isRotated) newImg.classList.add('rotated');
+            // if (isRotated) newImg.classList.add('rotated'); // 移除
 
             if (animate) {
                 isAnimating = true;
@@ -679,18 +637,7 @@
             preloadImage(currentPhotoIndex - 1);
         }
 
-        // ★ 新增功能：切換旋轉
-        function toggleRotate() {
-            isRotated = !isRotated;
-            const img = lightboxContent.querySelector('img');
-            if (img) {
-                if (isRotated) {
-                    img.classList.add('rotated');
-                } else {
-                    img.classList.remove('rotated');
-                }
-            }
-        }
+        // function toggleRotate() { ... } // 移除
 
         function preloadImage(index) {
             if (index >= 0 && index < currentAlbumPhotos.length) {
@@ -705,10 +652,7 @@
             if (newIndex < 0) return; 
             if (newIndex >= currentAlbumPhotos.length) return; 
             
-            // 切換照片時，是否要保持旋轉？
-            // 通常切換照片會希望重置為直式，或者你可以選擇保留 isRotated 狀態
-            // 這裡我選擇：每次切換照片都「重置」回正常視角，避免下一張是直式照片卻被轉歪了
-            isRotated = false; 
+            // isRotated = false; // 移除
             
             currentPhotoIndex = newIndex;
             renderLightboxPhoto(true, direction);
