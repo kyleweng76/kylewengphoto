@@ -148,53 +148,50 @@
             max-width: 800px; 
         }
 
-        /* ★ 修改：極致密合照片牆 (Tight Wall) */
+        /* ★ 修改：正方形網格照片牆 (Square Grid Wall) */
         #home-view.photostream-mode {
-            display: block; 
+            display: grid; /* 改回 Grid */
             max-width: 100%;
-            padding: 0; /* 移除外圍留白，滿版 */
+            padding: 0; 
             
-            /* 調整間距為 1px */
-            column-gap: 1px; 
-            column-count: 3; /* 手機 3 列 */
+            /* 手機預設 3 列 */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px; /* 1px 極窄縫隙 */
         }
 
         /* 自適應列數 */
         @media (min-width: 600px) {
-            #home-view.photostream-mode { column-count: 4; }
+            #home-view.photostream-mode { grid-template-columns: repeat(4, 1fr); }
         }
         @media (min-width: 900px) {
-            #home-view.photostream-mode { column-count: 5; }
+            #home-view.photostream-mode { grid-template-columns: repeat(5, 1fr); }
         }
         @media (min-width: 1200px) {
-            #home-view.photostream-mode { column-count: 6; }
+            #home-view.photostream-mode { grid-template-columns: repeat(6, 1fr); }
         }
         @media (min-width: 1600px) {
-            #home-view.photostream-mode { column-count: 8; }
+            #home-view.photostream-mode { grid-template-columns: repeat(8, 1fr); }
         }
 
         .stream-item {
-            break-inside: avoid;
-            margin-bottom: 1px; /* 垂直間距 1px */
             position: relative;
             cursor: pointer;
             overflow: hidden;
-            border-radius: 0; /* 直角 */
             background: #111;
-            /* 讓圖片載入前佔位，避免版面跳動 (選用) */
-            min-height: 50px; 
+            aspect-ratio: 1 / 1; /* ★ 強制正方形 */
         }
 
         .stream-img {
             width: 100%;
-            height: auto;
-            display: block; /* 消除圖片底部縫隙 */
+            height: 100%;
+            object-fit: cover; /* ★ 裁切填滿 */
+            display: block;
             transition: opacity 0.5s ease;
             opacity: 0; 
         }
         .stream-img.loaded { opacity: 1; }
 
-        /* --- 相簿列表卡片樣式 (維持原樣) --- */
+        /* --- 相簿列表卡片樣式 --- */
         .feed-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -537,20 +534,11 @@
             }
         }
 
-        // ★ 工具：隨機洗牌陣列 (Fisher-Yates Shuffle)
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
         async function fetchPhotostream() {
             homeView.innerHTML = '<div class="loading">正在載入照片牆...</div>';
             homeView.className = 'photostream-mode'; 
             
-            // 抓取公開照片
+            // 抓取公開照片 (預設就是最新在前)
             const url = `https://www.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${API_KEY}&user_id=${USER_ID}&extras=url_q,url_m,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
 
             try {
@@ -561,15 +549,13 @@
 
                 homeView.innerHTML = '';
                 
-                // ★ 關鍵：將照片順序打亂
-                const shuffledPhotos = shuffleArray(data.photos.photo);
+                // ★ 移除隨機洗牌，保持原始順序
+                const photos = data.photos.photo;
                 
-                // 更新 currentAlbumPhotos (為了 Lightbox 能正確前後切換，這裡也要同步打亂順序嗎？
-                // 為了讓點開後的順序跟牆上一樣，我們重組 currentAlbumPhotos
                 currentAlbumPhotos = [];
 
-                shuffledPhotos.forEach((photo, index) => {
-                    // 照片牆用中圖或大圖 (視照片而定)
+                photos.forEach((photo, index) => {
+                    // 照片牆用中圖或大圖
                     const thumbUrl = photo.url_m || photo.url_l || photo.url_q; 
                     const previewUrl = photo.url_l || photo.url_o;
                     const downloadUrl = photo.url_o || photo.url_l;
@@ -586,7 +572,7 @@
                     div.className = 'stream-item';
                     div.innerHTML = `<img src="${thumbUrl}" class="stream-img" loading="lazy" onload="this.classList.add('loaded')">`;
                     
-                    div.onclick = () => openLightbox(index); // 傳入新的 index
+                    div.onclick = () => openLightbox(index); 
                     homeView.appendChild(div);
                 });
 
