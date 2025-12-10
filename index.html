@@ -135,19 +135,63 @@
             font-weight: 500;
         }
 
-        /* --- 首頁：動態牆列表 (Feed Style) --- */
-        .album-list {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
+        /* --- 通用容器 (給 相簿列表 或 照片牆 使用) --- */
+        #home-view {
             padding: 20px;
-            max-width: 800px; /* 閱讀區塊限制寬度 */
             margin: 0 auto;
             animation: fadeIn 0.5s ease;
             padding-bottom: 80px;
+            /* 預設給相簿列表用的樣式 */
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            max-width: 800px; 
         }
 
+        /* ★ 新增：照片牆 (Photostream) 樣式 - 瀑布流 CSS Columns */
+        #home-view.photostream-mode {
+            display: block; /* 解除 flex，改用 block 讓 column 生效 */
+            max-width: 1600px; /* 照片牆可以寬一點 */
+            column-count: 2; /* 手機直式預設 2 列 */
+            column-gap: 15px;
+        }
+
+        /* 自適應欄位數量 */
+        @media (min-width: 600px) {
+            #home-view.photostream-mode { column-count: 3; }
+        }
+        @media (min-width: 1024px) {
+            #home-view.photostream-mode { column-count: 4; }
+        }
+        @media (min-width: 1400px) {
+            #home-view.photostream-mode { column-count: 5; }
+        }
+
+        .stream-item {
+            break-inside: avoid; /* 防止圖片被切斷 */
+            margin-bottom: 15px;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #1a1a1a;
+        }
+
+        .stream-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+            opacity: 0; /* Lazy load */
+        }
+        .stream-img.loaded { opacity: 1; }
+
+        .stream-item:hover .stream-img {
+            transform: scale(1.05);
+        }
+
+        /* --- 相簿列表卡片樣式 (維持原樣) --- */
         .feed-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -158,28 +202,24 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5); 
         }
 
-        /* ★ 修改：讓圖片容器自動適應高度，不強制比例 */
         .feed-img-container {
             width: 100%;
-            /* aspect-ratio: 16 / 9;  <-- 移除這行強制比例 */
-            min-height: 200px; /* 給個最小高度避免載入時閃爍太嚴重 */
-            background: #222; /* 載入前的底色 */
+            min-height: 200px;
+            background: #222;
             overflow: hidden;
             cursor: pointer;
             position: relative;
         }
 
-        /* ★ 修改：讓圖片高度自動 (height: auto) */
         .feed-img {
             width: 100%; 
-            height: auto; /* 自動高度，保持原比例 */
-            display: block; /* 消除圖片底部的微小縫隙 */
-            /* object-fit: cover; <-- 移除，因為我們現在要完整呈現 */
+            height: auto; 
+            display: block;
             transition: transform 0.5s ease;
         }
         
         .feed-img-container:hover .feed-img {
-            transform: scale(1.02); /* 輕微放大就好，太大會模糊 */
+            transform: scale(1.02);
         }
 
         .feed-content {
@@ -427,6 +467,7 @@
         </div>
     </header>
 
+    <!-- 這裡將根據模式切換 class -->
     <div id="home-view" class="album-list"></div>
 
     <div id="gallery-view" class="gallery-view">
@@ -489,26 +530,71 @@
             if (albumId) {
                 loadAlbumPhotos(albumId);
             } else {
-                fetchAlbumsAndRender();
+                // 預設進入 "All" 模式，載入照片牆
+                filterAlbums('all');
             }
         }
 
-        async function fetchAlbumsAndRender() {
-            homeView.style.display = 'flex'; 
-            galleryView.style.display = 'none';
-            backBtn.style.display = 'none';
-            categoryTabs.style.display = 'flex';
-            socialLinks.style.display = 'flex';
-            document.title = SITE_TITLE;
+        // ★ 新增：抓取照片牆 (Photostream)
+        async function fetchPhotostream() {
+            // 切換樣式為照片牆模式
+            homeView.innerHTML = '<div class="loading">正在載入照片牆...</div>';
+            homeView.className = 'photostream-mode'; 
+            
+            // 為了簡化，這裡先抓取最新的 100 張公開照片
+            const url = `https://www.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${API_KEY}&user_id=${USER_ID}&extras=url_q,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
 
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.stat !== 'ok') throw new Error(data.message);
+
+                homeView.innerHTML = '';
+                
+                // 更新 currentAlbumPhotos 讓 Lightbox 可以瀏覽這 100 張圖
+                currentAlbumPhotos = [];
+
+                data.photos.photo.forEach((photo, index) => {
+                    const thumbUrl = photo.url_l || photo.url_m || photo.url_q; // 牆上用大一點的圖
+                    const previewUrl = photo.url_l || photo.url_o;
+                    const downloadUrl = photo.url_o || photo.url_l;
+                    
+                    if(!thumbUrl) return;
+
+                    // 存入資料供 Lightbox 使用
+                    currentAlbumPhotos.push({
+                        preview: previewUrl,
+                        download: downloadUrl,
+                        title: photo.title
+                    });
+
+                    const div = document.createElement('div');
+                    div.className = 'stream-item';
+                    // 使用 img 標籤讓 Masonry 佈局自然運作
+                    div.innerHTML = `<img src="${thumbUrl}" class="stream-img" loading="lazy" onload="this.classList.add('loaded')">`;
+                    
+                    div.onclick = () => openLightbox(index); // 點擊直接開圖
+                    homeView.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error(error);
+                homeView.innerHTML = `<div class="loading">載入失敗<br><small>${error.message}</small></div>`;
+            }
+        }
+
+        async function fetchAlbumsAndRender(filterType) {
+            // 切換樣式為相簿列表模式
+            homeView.className = 'album-list';
+            
             if (cachedAlbums.length > 0) {
-                filterAlbums(currentFilter);
+                renderAlbumList(cachedAlbums.filter(album => album.type === filterType));
                 return;
             }
 
             homeView.innerHTML = '<div class="loading">正在整理相簿...</div>';
 
-            // ★ 修改：加入 url_l 來獲取高畫質封面
             const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getList&api_key=${API_KEY}&user_id=${USER_ID}&primary_photo_extras=url_m,url_l,url_o&format=json&nojsoncallback=1`;
 
             try {
@@ -518,7 +604,6 @@
                 if (data.stat !== 'ok') throw new Error(data.message);
 
                 cachedAlbums = data.photosets.photoset.map(set => {
-                    // ★ 優先使用 url_l (1024px) 作為封面，這樣全寬顯示才不會糊
                     const cover = set.primary_photo_extras?.url_l || set.primary_photo_extras?.url_m || set.primary_photo_extras?.url_o || '';
                     const title = set.title._content;
                     const desc = set.description._content || "（此相簿暫無描述）";
@@ -528,16 +613,10 @@
                         type = 'event';
                     }
 
-                    return { 
-                        id: set.id, 
-                        title: title, 
-                        cover: cover, 
-                        desc: desc, 
-                        type: type 
-                    };
+                    return { id: set.id, title: title, cover: cover, desc: desc, type: type };
                 });
 
-                filterAlbums('all'); 
+                renderAlbumList(cachedAlbums.filter(album => album.type === filterType));
 
             } catch (error) {
                 console.error(error);
@@ -545,21 +624,40 @@
             }
         }
 
+        // ★ 修改：分類切換邏輯
         function filterAlbums(type) {
             currentFilter = type;
+            
+            // 切換按鈕樣式
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
-            
             if(type === 'all') buttons[0].classList.add('active');
             if(type === 'portrait') buttons[1].classList.add('active');
             if(type === 'event') buttons[2].classList.add('active');
 
-            let filteredData = (type === 'all') ? cachedAlbums : cachedAlbums.filter(album => album.type === type);
-            renderAlbumList(filteredData);
+            // 確保回到首頁 view
+            homeView.style.display = 'block'; // 注意：這裡配合 photostream 改成 block
+            if (homeView.classList.contains('album-list')) {
+                 homeView.style.display = 'flex'; // 如果是相簿列表則用 flex
+            }
+            galleryView.style.display = 'none';
+            backBtn.style.display = 'none';
+            categoryTabs.style.display = 'flex';
+            socialLinks.style.display = 'flex';
+
+            if (type === 'all') {
+                fetchPhotostream(); // 全部 = 照片牆
+            } else {
+                fetchAlbumsAndRender(type); // 其他 = 相簿列表
+            }
         }
 
         function renderAlbumList(albums) {
             homeView.innerHTML = '';
+            // 確保切換回列表樣式
+            homeView.className = 'album-list';
+            homeView.style.display = 'flex';
+
             if (albums.length === 0) {
                 homeView.innerHTML = '<div class="loading">此分類暫無相簿</div>';
                 return;
@@ -642,15 +740,12 @@
         function goHome() {
             const newUrl = window.location.pathname; 
             safePushState({path: newUrl}, '', newUrl);
-            homeView.style.display = 'flex';
-            galleryView.style.display = 'none';
-            backBtn.style.display = 'none';
-            categoryTabs.style.display = 'flex'; 
-            socialLinks.style.display = 'flex';
+            // 根據當前 filter 決定回到哪種模式
+            filterAlbums(currentFilter);
             document.title = SITE_TITLE;
         }
 
-        // Lightbox Logic
+        // Lightbox Logic (保持不變)
         const lightbox = document.getElementById('lightbox');
         const lightboxContent = document.getElementById('lightbox-content');
         const downloadBtn = document.getElementById('download-btn');
