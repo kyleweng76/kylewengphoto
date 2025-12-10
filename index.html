@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- ★ 修改 1: 更新網站標題 -->
     <title>Kylewengphoto攝情</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,7 +40,7 @@
         }
         
         header h1 {
-            margin: 0 0 15px 0;
+            margin: 0 0 10px 0; /* 縮小一點下方間距給社群圖示 */
             cursor: pointer;
             display: flex;
             justify-content: center;
@@ -74,6 +73,34 @@
             padding: 10px;
             margin-left: -10px;
             z-index: 60;
+        }
+
+        /* ★ 新增：社群連結樣式 */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 15px;
+            transition: opacity 0.3s;
+        }
+
+        .social-icon {
+            color: #888;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .social-icon:hover {
+            color: #fff;
+            transform: scale(1.1); /* 滑鼠懸停時放大一點 */
+        }
+
+        .social-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
         }
 
         /* --- 分類標籤 (Tabs) --- */
@@ -187,7 +214,7 @@
         }
         .photo-item img.loaded { opacity: 1; }
 
-        /* --- Lightbox 修正版 V3 (無縫滑動) --- */
+        /* --- Lightbox 修正版 V3 --- */
         .lightbox {
             display: none;
             position: fixed;
@@ -214,7 +241,6 @@
             opacity: 1;
         }
         
-        /* 圖片容器：這裡設定為 relative，讓內部的圖片可以 absolute 疊在一起 */
         .lightbox-content {
             flex: 1;
             width: 100%;
@@ -222,10 +248,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden; /* 確保滑動時不會超出邊界 */
+            overflow: hidden; 
         }
 
-        /* 圖片樣式：改為絕對定位，讓兩張圖可以重疊進行轉場 */
         .lightbox-img {
             position: absolute;
             top: 0;
@@ -233,43 +258,23 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            /* 扣掉上下介面高度，避免被遮擋 */
-            padding: 0 10px; /* 左右留一點點邊距 */
+            padding: 0 10px; 
             box-sizing: border-box;
-            
-            /* 預設狀態 */
             transform: translate3d(0, 0, 0);
             will-change: transform, opacity;
         }
 
-        /* ★ 柔和的滑動動畫 (使用 translate3d 啟用硬體加速) */
-        /* 下一張 (往左滑)：舊圖去左邊，新圖從右邊來 */
+        /* 滑動動畫 */
         .slide-next-enter { animation: slideInFromRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .slide-next-exit  { animation: slideOutToLeft 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-
-        /* 上一張 (往右滑)：舊圖去右邊，新圖從左邊來 */
         .slide-prev-enter { animation: slideInFromLeft 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .slide-prev-exit  { animation: slideOutToRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        @keyframes slideInFromRight {
-            from { transform: translate3d(100%, 0, 0); }
-            to { transform: translate3d(0, 0, 0); }
-        }
-        @keyframes slideOutToLeft {
-            from { transform: translate3d(0, 0, 0); opacity: 1; }
-            to { transform: translate3d(-100%, 0, 0); opacity: 0; }
-        }
+        @keyframes slideInFromRight { from { transform: translate3d(100%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+        @keyframes slideOutToLeft { from { transform: translate3d(0, 0, 0); opacity: 1; } to { transform: translate3d(-100%, 0, 0); opacity: 0; } }
+        @keyframes slideInFromLeft { from { transform: translate3d(-100%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+        @keyframes slideOutToRight { from { transform: translate3d(0, 0, 0); opacity: 1; } to { transform: translate3d(100%, 0, 0); opacity: 0; } }
 
-        @keyframes slideInFromLeft {
-            from { transform: translate3d(-100%, 0, 0); }
-            to { transform: translate3d(0, 0, 0); }
-        }
-        @keyframes slideOutToRight {
-            from { transform: translate3d(0, 0, 0); opacity: 1; }
-            to { transform: translate3d(100%, 0, 0); opacity: 0; }
-        }
-
-        /* 底部操作區 */
         .action-bar { 
             height: 80px; 
             width: 100%;
@@ -305,7 +310,6 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* 左右切換按鈕 (電腦版顯示) */
         .nav-btn {
             position: absolute;
             top: 50%;
@@ -328,16 +332,11 @@
         .nav-btn.prev { left: 20px; }
         .nav-btn.next { right: 20px; }
 
-        @media (min-width: 768px) {
-            .nav-btn { display: flex; } 
-        }
+        @media (min-width: 768px) { .nav-btn { display: flex; } }
 
         .loading { text-align: center; padding: 40px; color: #666; width: 100%; grid-column: 1 / -1; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -349,6 +348,18 @@
             <img src="kw_web_white_s.png" alt="Kylewengphoto攝情" class="site-logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
             <span id="text-logo" class="fallback-title">Kylewengphoto攝情</span>
         </h1>
+
+        <!-- ★ 新增：社群連結區 (請更換成你的連結) -->
+        <div id="social-links" class="social-links">
+            <!-- Facebook -->
+            <a href="https://www.facebook.com/kylewengphoto" target="_blank" class="social-icon" aria-label="Facebook">
+                <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385h-3.047v-3.47h3.047v-2.641c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.514c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385c5.737-.9 10.125-5.864 10.125-11.854z"/></svg>
+            </a>
+            <!-- Instagram -->
+            <a href="https://www.instagram.com/kylewengphoto" target="_blank" class="social-icon" aria-label="Instagram">
+                <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+        </div>
         
         <div id="category-tabs" class="category-tabs">
             <button class="tab-btn active" onclick="filterAlbums('all')">全部 All</button>
@@ -370,9 +381,8 @@
         <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
         <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
 
-        <!-- 圖片容器 (注意：這裡不再放固定的 img，而是由 JS 動態產生) -->
         <div id="lightbox-content" class="lightbox-content">
-            <!-- Images will be injected here -->
+            <!-- Images injected via JS -->
         </div>
 
         <div class="action-bar">
@@ -387,8 +397,6 @@
         // ================= 設定區 =================
         const API_KEY = 'f26141b4efcea9ac125fd95bf777eb55'; 
         const USER_ID = '135451339@N02'; 
-        
-        // ★ 修改 2: 全域標題名稱設定
         const SITE_TITLE = "Kylewengphoto攝情";
 
         const EVENT_KEYWORDS = [
@@ -405,13 +413,14 @@
         let currentFilter = 'all';
         let currentAlbumPhotos = []; 
         let currentPhotoIndex = 0;
-        let isAnimating = false; // 防止快速連點
+        let isAnimating = false;
 
         const homeView = document.getElementById('home-view');
         const galleryView = document.getElementById('gallery-view');
         const galleryGrid = document.getElementById('gallery-grid');
         const backBtn = document.getElementById('back-btn');
         const categoryTabs = document.getElementById('category-tabs');
+        const socialLinks = document.getElementById('social-links'); // 社群區塊
 
         function safePushState(data, title, url) {
             try { window.history.pushState(data, title, url); } 
@@ -433,7 +442,8 @@
             homeView.style.display = 'grid';
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
-            categoryTabs.style.display = 'flex'; 
+            categoryTabs.style.display = 'flex';
+            socialLinks.style.display = 'flex'; // 顯示社群
             document.title = SITE_TITLE;
 
             if (cachedAlbums.length > 0) {
@@ -509,6 +519,7 @@
             galleryView.style.display = 'block';
             backBtn.style.display = 'block';
             categoryTabs.style.display = 'none';
+            socialLinks.style.display = 'none'; // 隱藏社群
             galleryGrid.innerHTML = '<div class="loading">載入照片中...</div>';
 
             const url = `https://www.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=${API_KEY}&photoset_id=${photosetId}&user_id=${USER_ID}&extras=url_q,url_l,url_o&format=json&nojsoncallback=1`;
@@ -558,18 +569,19 @@
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
             categoryTabs.style.display = 'flex'; 
+            socialLinks.style.display = 'flex'; // 恢復顯示社群
             document.title = SITE_TITLE;
         }
 
-        // ================= Lightbox 核心重寫 =================
+        // ================= Lightbox 邏輯 =================
         const lightbox = document.getElementById('lightbox');
         const lightboxContent = document.getElementById('lightbox-content');
         const downloadBtn = document.getElementById('download-btn');
 
         function openLightbox(index) {
             currentPhotoIndex = index;
-            lightboxContent.innerHTML = ''; // 清空
-            renderLightboxPhoto(false); // 直接顯示，無動畫
+            lightboxContent.innerHTML = ''; 
+            renderLightboxPhoto(false); 
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
             isAnimating = false;
@@ -579,45 +591,31 @@
             const photo = currentAlbumPhotos[currentPhotoIndex];
             downloadBtn.href = photo.download;
 
-            // 1. 建立新圖片元素
             const newImg = document.createElement('img');
             newImg.src = photo.preview;
             newImg.className = 'lightbox-img';
-            newImg.draggable = false; // 禁止拖曳圖片本身
+            newImg.draggable = false;
 
             if (animate) {
                 isAnimating = true;
-                
-                // 設定新圖片的進場動畫 class
                 newImg.classList.add(direction === 1 ? 'slide-next-enter' : 'slide-prev-enter');
-                
-                // 取得舊圖片 (目前還在畫面上的)
                 const oldImg = lightboxContent.querySelector('img');
                 
                 if (oldImg) {
-                    // 設定舊圖片的退場動畫 class
                     oldImg.classList.add(direction === 1 ? 'slide-next-exit' : 'slide-prev-exit');
-                    
-                    // 動畫結束後移除舊圖片
                     setTimeout(() => {
                         if(oldImg && oldImg.parentNode) oldImg.remove();
-                        // 移除新圖片的動畫 class，保持乾淨狀態
                         newImg.classList.remove('slide-next-enter', 'slide-prev-enter');
                         isAnimating = false;
-                    }, 400); // 這裡的時間要跟 CSS animation 時間一致
+                    }, 400); 
                 } else {
                     isAnimating = false;
                 }
-                
-                // 加入新圖片
                 lightboxContent.appendChild(newImg);
             } else {
-                // 不動畫，直接替換
                 lightboxContent.innerHTML = '';
                 lightboxContent.appendChild(newImg);
             }
-
-            // 預載鄰近圖片 (靜默載入)
             preloadImage(currentPhotoIndex + 1);
             preloadImage(currentPhotoIndex - 1);
         }
@@ -630,61 +628,37 @@
         }
 
         function changePhoto(direction) {
-            if (isAnimating) return; // 動畫中禁止切換
-
+            if (isAnimating) return; 
             let newIndex = currentPhotoIndex + direction;
             if (newIndex < 0) return; 
             if (newIndex >= currentAlbumPhotos.length) return; 
-
             currentPhotoIndex = newIndex;
             renderLightboxPhoto(true, direction);
         }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
-            setTimeout(() => {
-                lightboxContent.innerHTML = ''; // 關閉動畫結束後清空
-            }, 300);
+            setTimeout(() => { lightboxContent.innerHTML = ''; }, 300);
             document.body.style.overflow = '';
         }
 
         lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox || e.target === lightboxContent) {
-                closeLightbox();
-            }
+            if (e.target === lightbox || e.target === lightboxContent) closeLightbox();
         });
 
-        // --- 手勢滑動 ---
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let touchStartY = 0;
-
+        // 手勢
+        let touchStartX = 0, touchEndX = 0, touchStartY = 0;
         lightbox.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
             touchStartY = e.changedTouches[0].screenY;
         }, {passive: true});
-
         lightbox.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
-            const touchEndY = e.changedTouches[0].screenY;
-            handleSwipe(touchEndY - touchStartY);
-        }, {passive: true});
-
-        function handleSwipe(verticalDiff) {
-            // 如果垂直滑動太多，就不算切換照片 (可能是在滑動瀏覽器)
-            if (Math.abs(verticalDiff) > 100) return;
-
-            const swipeThreshold = 50; 
-            const diff = touchStartX - touchEndX;
-
-            if (Math.abs(diff) > swipeThreshold) {
-                if (diff > 0) {
-                    changePhoto(1); // 左滑 = 下一張
-                } else {
-                    changePhoto(-1); // 右滑 = 上一張
-                }
+            if (Math.abs(e.changedTouches[0].screenY - touchStartY) > 100) return;
+            if (Math.abs(touchStartX - touchEndX) > 50) {
+                (touchStartX - touchEndX > 0) ? changePhoto(1) : changePhoto(-1);
             }
-        }
+        }, {passive: true});
         
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;
@@ -693,9 +667,7 @@
             if (e.key === 'Escape') closeLightbox();
         });
 
-        window.onpopstate = function(event) {
-            init();
-        };
+        window.onpopstate = function(event) { init(); };
 
         init();
     </script>
