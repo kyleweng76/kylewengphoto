@@ -135,13 +135,12 @@
             font-weight: 500;
         }
 
-        /* --- 通用容器 (給 相簿列表 或 照片牆 使用) --- */
+        /* --- 通用容器 --- */
         #home-view {
             padding: 20px;
             margin: 0 auto;
             animation: fadeIn 0.5s ease;
             padding-bottom: 80px;
-            /* 預設給相簿列表用的樣式 */
             display: flex; 
             flex-direction: column;
             align-items: center;
@@ -149,47 +148,49 @@
             max-width: 800px; 
         }
 
-        /* ★ 新增：照片牆 (Photostream) 樣式 - 瀑布流 CSS Columns */
+        /* ★ 修改：高密度拼貼牆樣式 (Collage Wall) */
         #home-view.photostream-mode {
-            display: block; /* 解除 flex，改用 block 讓 column 生效 */
-            max-width: 1600px; /* 照片牆可以寬一點 */
-            column-count: 2; /* 手機直式預設 2 列 */
-            column-gap: 15px;
+            display: block; 
+            max-width: 100%; /* 全螢幕寬度 */
+            padding: 2px; /* 極窄邊距 */
+            
+            /* CSS Columns 瀑布流 */
+            column-count: 3; /* 手機預設 3 列 (高密度) */
+            column-gap: 2px; /* 拼貼縫隙極小 */
         }
 
-        /* 自適應欄位數量 */
+        /* 自適應：螢幕越大，列數越多 */
         @media (min-width: 600px) {
-            #home-view.photostream-mode { column-count: 3; }
-        }
-        @media (min-width: 1024px) {
             #home-view.photostream-mode { column-count: 4; }
         }
-        @media (min-width: 1400px) {
+        @media (min-width: 900px) {
             #home-view.photostream-mode { column-count: 5; }
+        }
+        @media (min-width: 1200px) {
+            #home-view.photostream-mode { column-count: 6; }
+        }
+        @media (min-width: 1600px) {
+            #home-view.photostream-mode { column-count: 8; } /* 超大螢幕 8 列 */
         }
 
         .stream-item {
-            break-inside: avoid; /* 防止圖片被切斷 */
-            margin-bottom: 15px;
+            break-inside: avoid;
+            margin-bottom: 2px; /* 垂直縫隙極小 */
             position: relative;
             cursor: pointer;
             overflow: hidden;
-            border-radius: 8px;
-            background: #1a1a1a;
+            border-radius: 0; /* 移除圓角，更像拼貼牆 */
+            background: #111;
         }
 
         .stream-img {
             width: 100%;
             height: auto;
             display: block;
-            transition: transform 0.5s ease;
-            opacity: 0; /* Lazy load */
+            transition: opacity 0.5s ease; /* 移除 hover 放大，保持牆面平整 */
+            opacity: 0; 
         }
         .stream-img.loaded { opacity: 1; }
-
-        .stream-item:hover .stream-img {
-            transform: scale(1.05);
-        }
 
         /* --- 相簿列表卡片樣式 (維持原樣) --- */
         .feed-card {
@@ -530,19 +531,25 @@
             if (albumId) {
                 loadAlbumPhotos(albumId);
             } else {
-                // 預設進入 "All" 模式，載入照片牆
                 filterAlbums('all');
             }
         }
 
-        // ★ 新增：抓取照片牆 (Photostream)
+        // ★ 工具：隨機洗牌陣列 (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         async function fetchPhotostream() {
-            // 切換樣式為照片牆模式
             homeView.innerHTML = '<div class="loading">正在載入照片牆...</div>';
             homeView.className = 'photostream-mode'; 
             
-            // 為了簡化，這裡先抓取最新的 100 張公開照片
-            const url = `https://www.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${API_KEY}&user_id=${USER_ID}&extras=url_q,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
+            // 抓取公開照片
+            const url = `https://www.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${API_KEY}&user_id=${USER_ID}&extras=url_q,url_m,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
 
             try {
                 const response = await fetch(url);
@@ -552,17 +559,21 @@
 
                 homeView.innerHTML = '';
                 
-                // 更新 currentAlbumPhotos 讓 Lightbox 可以瀏覽這 100 張圖
+                // ★ 關鍵：將照片順序打亂
+                const shuffledPhotos = shuffleArray(data.photos.photo);
+                
+                // 更新 currentAlbumPhotos (為了 Lightbox 能正確前後切換，這裡也要同步打亂順序嗎？
+                // 為了讓點開後的順序跟牆上一樣，我們重組 currentAlbumPhotos
                 currentAlbumPhotos = [];
 
-                data.photos.photo.forEach((photo, index) => {
-                    const thumbUrl = photo.url_l || photo.url_m || photo.url_q; // 牆上用大一點的圖
+                shuffledPhotos.forEach((photo, index) => {
+                    // 照片牆用中圖或大圖 (視照片而定)
+                    const thumbUrl = photo.url_m || photo.url_l || photo.url_q; 
                     const previewUrl = photo.url_l || photo.url_o;
                     const downloadUrl = photo.url_o || photo.url_l;
                     
                     if(!thumbUrl) return;
 
-                    // 存入資料供 Lightbox 使用
                     currentAlbumPhotos.push({
                         preview: previewUrl,
                         download: downloadUrl,
@@ -571,10 +582,9 @@
 
                     const div = document.createElement('div');
                     div.className = 'stream-item';
-                    // 使用 img 標籤讓 Masonry 佈局自然運作
                     div.innerHTML = `<img src="${thumbUrl}" class="stream-img" loading="lazy" onload="this.classList.add('loaded')">`;
                     
-                    div.onclick = () => openLightbox(index); // 點擊直接開圖
+                    div.onclick = () => openLightbox(index); // 傳入新的 index
                     homeView.appendChild(div);
                 });
 
@@ -585,7 +595,6 @@
         }
 
         async function fetchAlbumsAndRender(filterType) {
-            // 切換樣式為相簿列表模式
             homeView.className = 'album-list';
             
             if (cachedAlbums.length > 0) {
@@ -624,21 +633,18 @@
             }
         }
 
-        // ★ 修改：分類切換邏輯
         function filterAlbums(type) {
             currentFilter = type;
             
-            // 切換按鈕樣式
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             if(type === 'all') buttons[0].classList.add('active');
             if(type === 'portrait') buttons[1].classList.add('active');
             if(type === 'event') buttons[2].classList.add('active');
 
-            // 確保回到首頁 view
-            homeView.style.display = 'block'; // 注意：這裡配合 photostream 改成 block
+            homeView.style.display = 'block'; 
             if (homeView.classList.contains('album-list')) {
-                 homeView.style.display = 'flex'; // 如果是相簿列表則用 flex
+                 homeView.style.display = 'flex'; 
             }
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
@@ -646,15 +652,14 @@
             socialLinks.style.display = 'flex';
 
             if (type === 'all') {
-                fetchPhotostream(); // 全部 = 照片牆
+                fetchPhotostream();
             } else {
-                fetchAlbumsAndRender(type); // 其他 = 相簿列表
+                fetchAlbumsAndRender(type);
             }
         }
 
         function renderAlbumList(albums) {
             homeView.innerHTML = '';
-            // 確保切換回列表樣式
             homeView.className = 'album-list';
             homeView.style.display = 'flex';
 
@@ -740,12 +745,11 @@
         function goHome() {
             const newUrl = window.location.pathname; 
             safePushState({path: newUrl}, '', newUrl);
-            // 根據當前 filter 決定回到哪種模式
             filterAlbums(currentFilter);
             document.title = SITE_TITLE;
         }
 
-        // Lightbox Logic (保持不變)
+        // Lightbox Logic
         const lightbox = document.getElementById('lightbox');
         const lightboxContent = document.getElementById('lightbox-content');
         const downloadBtn = document.getElementById('download-btn');
