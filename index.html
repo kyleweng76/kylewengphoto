@@ -12,10 +12,8 @@
     <link rel="shortcut icon" href="weblogo.png">
 
     <style>
-        /* ★ 修正 1: 全域 Box-sizing 設定 */
-        * {
-            box-sizing: border-box;
-        }
+        /* ★ 全域設定 */
+        * { box-sizing: border-box; }
 
         :root {
             --bg-color: #000000;
@@ -55,111 +53,55 @@
             min-height: 40px; 
         }
 
-        .site-logo {
-            height: 36px;
-            width: auto;
-            display: block;
-        }
-        
-        .fallback-title {
-            display: none;
-            font-weight: 300;
-            letter-spacing: 2px;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-        }
+        .site-logo { height: 36px; width: auto; display: block; }
+        .fallback-title { display: none; font-weight: 300; letter-spacing: 2px; font-size: 1.2rem; text-transform: uppercase; }
 
         .back-btn {
-            position: absolute;
-            left: 20px;
-            top: 35px;
-            font-size: 1rem;
-            color: #ccc;
-            cursor: pointer;
-            display: none;
-            padding: 10px;
-            margin-left: -10px;
-            z-index: 60;
+            position: absolute; left: 20px; top: 35px;
+            font-size: 1rem; color: #ccc; cursor: pointer;
+            display: none; padding: 10px; margin-left: -10px; z-index: 60;
         }
 
         .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 15px;
-            transition: opacity 0.3s;
+            display: flex; justify-content: center; gap: 24px;
+            margin-bottom: 15px; transition: opacity 0.3s;
         }
 
         .social-icon {
-            color: #888;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: #888; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
         }
+        .social-icon:hover { color: #fff; transform: scale(1.1); }
+        .social-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .social-icon:hover {
-            color: #fff;
-            transform: scale(1.1);
-        }
-
-        .social-icon svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
-
-        /* --- 分類標籤 --- */
+        /* 分類標籤 */
         .category-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding-bottom: 15px;
-            overflow-x: auto;
-            white-space: nowrap;
-            -ms-overflow-style: none;  
-            scrollbar-width: none;  
+            display: flex; justify-content: center; gap: 10px;
+            padding-bottom: 15px; overflow-x: auto;
+            white-space: nowrap; -ms-overflow-style: none; scrollbar-width: none;
         }
         .category-tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
-            background: transparent;
-            border: 1px solid #444;
-            color: #888;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
+            background: transparent; border: 1px solid #444; color: #888;
+            padding: 6px 16px; border-radius: 20px; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.3s;
         }
-
         .tab-btn.active {
-            background: var(--active-color);
-            color: black;
-            border-color: var(--active-color);
-            font-weight: 500;
+            background: var(--active-color); color: black;
+            border-color: var(--active-color); font-weight: 500;
         }
 
-        /* --- 通用容器 --- */
+        /* 內容容器 */
         #home-view {
-            padding: 20px;
-            margin: 0 auto;
-            animation: fadeIn 0.5s ease;
-            padding-bottom: 80px;
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
-            max-width: 800px; 
+            padding: 20px; margin: 0 auto; animation: fadeIn 0.5s ease;
+            padding-bottom: 80px; display: flex; flex-direction: column;
+            align-items: center; gap: 40px; max-width: 800px; 
         }
 
-        /* 照片牆樣式 (Photostream) */
         #home-view.photostream-mode {
-            display: grid; 
-            max-width: 100%;
-            padding: 0; 
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
+            display: grid; max-width: 100%; padding: 0; 
+            grid-template-columns: repeat(2, 1fr); gap: 1px;
         }
 
         @media (min-width: 600px) { #home-view.photostream-mode { grid-template-columns: repeat(3, 1fr); } }
@@ -168,181 +110,89 @@
         @media (min-width: 1600px) { #home-view.photostream-mode { grid-template-columns: repeat(6, 1fr); } }
 
         .stream-item {
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            background: #111;
-            aspect-ratio: 1 / 1;
+            position: relative; cursor: pointer; overflow: hidden;
+            background: #111; aspect-ratio: 1 / 1;
         }
-
         .stream-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: opacity 0.5s ease;
-            opacity: 0; 
+            width: 100%; height: 100%; object-fit: cover;
+            display: block; transition: opacity 0.5s ease; opacity: 0; 
         }
         .stream-img.loaded { opacity: 1; }
 
-        /* --- 相簿列表卡片樣式 --- */
+        /* 相簿列表卡片 */
         .feed-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
+            background: var(--card-bg); border-radius: 12px; overflow: hidden;
+            width: 100%; display: flex; flex-direction: column;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5); 
         }
-
         .feed-img-container {
-            width: 100%;
-            min-height: 200px;
-            background: #222;
-            overflow: hidden;
-            cursor: pointer;
-            position: relative;
+            width: 100%; min-height: 200px; background: #222;
+            overflow: hidden; cursor: pointer; position: relative;
         }
-
         .feed-img {
-            width: 100%; 
-            height: auto; 
-            display: block;
-            transition: transform 0.5s ease;
+            width: 100%; height: auto; display: block; transition: transform 0.5s ease;
         }
-        
-        .feed-img-container:hover .feed-img {
-            transform: scale(1.02);
-        }
-
+        .feed-img-container:hover .feed-img { transform: scale(1.02); }
         .feed-content {
-            padding: 24px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            padding: 24px 20px; display: flex; flex-direction: column; align-items: flex-start;
         }
-
         .feed-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin: 0 0 12px 0;
-            line-height: 1.3;
-            color: #fff;
+            font-size: 1.4rem; font-weight: 600; margin: 0 0 12px 0;
+            line-height: 1.3; color: #fff;
         }
-
         .feed-desc {
-            font-size: 1rem;
-            color: #bbb;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            white-space: pre-line; 
-            width: 100%;
+            font-size: 1rem; color: #bbb; line-height: 1.6;
+            margin-bottom: 20px; white-space: pre-line; width: 100%;
         }
-
         .enter-btn {
-            background: transparent;
-            color: var(--active-color);
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            background: transparent; color: var(--active-color);
+            border: 1px solid rgba(255,255,255,0.3); padding: 10px 24px;
+            border-radius: 30px; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.2s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
         }
-        
-        .enter-btn:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: #fff;
-        }
-        
-        .enter-btn:active {
-            transform: scale(0.98);
-        }
+        .enter-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+        .enter-btn:active { transform: scale(0.98); }
 
-        /* --- 內頁：相簿內容 --- */
-        .gallery-view {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
+        /* 內頁 Grid */
+        .gallery-view { display: none; animation: fadeIn 0.3s ease; }
         .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
-            padding-bottom: 50px;
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 1px; padding-bottom: 50px;
         }
-
         @media (min-width: 600px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 900px) { .gallery-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (min-width: 1200px) { .gallery-grid { grid-template-columns: repeat(5, 1fr); } }
 
         .photo-item {
-            position: relative;
-            aspect-ratio: 1 / 1;
-            overflow: hidden;
-            background: #111;
-            cursor: pointer;
+            position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+            background: #111; cursor: pointer;
         }
-
         .photo-item img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            opacity: 0; 
-            transition: opacity 0.5s ease;
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: 0; transition: opacity 0.5s ease;
         }
         .photo-item img.loaded { opacity: 1; }
 
-        /* --- Lightbox --- */
+        /* Lightbox */
         .lightbox {
-            display: block; 
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 1000;
-            padding: 0;
-            
-            visibility: hidden; 
-            opacity: 0;
-            pointer-events: none; 
-            
-            transition: opacity 0.3s ease, visibility 0.3s;
-            user-select: none; 
-            -webkit-user-select: none;
+            display: block; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: #000;
+            z-index: 1000; padding: 0; visibility: hidden; opacity: 0;
+            pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s;
+            user-select: none; -webkit-user-select: none;
         }
-
-        .lightbox.active { 
-            visibility: visible;
-            opacity: 1;
-            pointer-events: auto; 
+        .lightbox.active { visibility: visible; opacity: 1; pointer-events: auto; }
+        .lightbox-content {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; 
+        }
+        .lightbox-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: contain; padding: 0; transform: translate3d(0, 0, 0);
+            will-change: transform, opacity; transition: transform 0.3s ease;
         }
         
-        .lightbox-content {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden; 
-        }
-
-        .lightbox-img {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: contain;
-            padding: 0; 
-            transform: translate3d(0, 0, 0);
-            will-change: transform, opacity;
-            transition: transform 0.3s ease;
-        }
-
-        /* 滑動動畫 */
         .slide-next-enter { animation: slideInFromRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .slide-next-exit  { animation: slideOutToLeft 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .slide-prev-enter { animation: slideInFromLeft 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
@@ -354,77 +204,102 @@
         @keyframes slideOutToRight { from { transform: translate3d(0, 0, 0); opacity: 1; } to { transform: translate3d(100%, 0, 0); opacity: 0; } }
 
         .action-bar { 
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 30px 20px 40px; 
-            display: flex; 
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 1001;
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 30px 20px 40px; display: flex; justify-content: center;
+            align-items: center; flex-direction: column; z-index: 1001;
             background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%); 
             pointer-events: none; 
         }
-        
         .action-bar a { pointer-events: auto; }
 
         .btn {
-            background: rgba(255,255,255,0.2);
-            color: white; padding: 12px 28px;
-            border-radius: 30px; text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.2); color: white; padding: 12px 28px;
+            border-radius: 30px; text-decoration: none; font-size: 15px; font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);
             display: flex; align-items: center; gap: 8px;
-            transition: background 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: background 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .btn:active { background: rgba(255,255,255,0.4); transform: scale(0.98); }
         
         .close-btn {
-            position: absolute; top: 15px; right: 15px;
-            font-size: 32px; padding: 10px; cursor: pointer;
-            z-index: 1002;
-            color: white;
-            opacity: 0.8;
-            height: 44px; width: 44px;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.3); 
-            border-radius: 50%;
-            backdrop-filter: blur(5px);
+            position: absolute; top: 15px; right: 15px; font-size: 32px; padding: 10px;
+            cursor: pointer; z-index: 1002; color: white; opacity: 0.8;
+            height: 44px; width: 44px; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); border-radius: 50%; backdrop-filter: blur(5px);
         }
 
         .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 20px;
-            cursor: pointer;
-            color: white;
-            font-size: 24px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50%;
-            width: 50px; height: 50px;
-            display: none; 
-            align-items: center;
-            justify-content: center;
-            z-index: 1002;
-            transition: background 0.2s;
+            position: absolute; top: 50%; transform: translateY(-50%); padding: 20px;
+            cursor: pointer; color: white; font-size: 24px;
+            background: rgba(0,0,0,0.3); border-radius: 50%;
+            width: 50px; height: 50px; display: none; align-items: center; justify-content: center;
+            z-index: 1002; transition: background 0.2s;
         }
-        
         .nav-btn:hover { background: rgba(255,255,255,0.2); }
-        .nav-btn.prev { left: 20px; }
-        .nav-btn.next { right: 20px; }
-
+        .nav-btn.prev { left: 20px; } .nav-btn.next { right: 20px; }
         @media (min-width: 768px) { .nav-btn { display: flex; } }
 
-        .loading { text-align: center; padding: 40px; color: #666; width: 100%; grid-column: 1 / -1; }
+        /* Age & PWA Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            padding: 20px; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
 
+        .modal-box {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 16px; padding: 30px 20px;
+            width: 100%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+        .modal-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 15px; color: #fff; }
+        /* 讓 SVG 圖示和文字對齊 */
+        .modal-text { font-size: 1rem; color: #bbb; margin-bottom: 30px; line-height: 1.6; }
+        .inline-icon { display: inline-block; vertical-align: text-bottom; margin: 0 2px; }
+        
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; flex-direction: column; }
+        .modal-btn {
+            padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 500;
+            cursor: pointer; border: none; transition: background 0.2s;
+        }
+        .modal-btn.primary { background: #fff; color: #000; }
+        .modal-btn.primary:active { background: #ddd; }
+        .modal-btn.secondary { background: transparent; color: #888; border: 1px solid #333; }
+        .modal-btn.secondary:active { color: #fff; border-color: #fff; }
+
+        .loading { text-align: center; padding: 40px; color: #666; width: 100%; grid-column: 1 / -1; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
+
+    <!-- 1. 年齡確認視窗 -->
+    <div id="age-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">未滿 18 歲請勿進入</div>
+            <div class="modal-text">本網站包含部分成人或藝術裸露內容。<br>請確認您已年滿 18 歲。</div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="confirmAge()">我已滿 18 歲 (Enter)</button>
+                <button class="modal-btn secondary" onclick="exitSite()">未滿 18 歲 (Exit)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 加入主畫面教學視窗 (動態內容) -->
+    <div id="pwa-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">獲得最佳瀏覽體驗</div>
+            <!-- 內容會由 JS 根據裝置替換 -->
+            <div id="pwa-instructions" class="modal-text"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="dismissPWA()">我知道了</button>
+                <button class="modal-btn secondary" onclick="dismissPWA(true)">不再顯示</button>
+            </div>
+        </div>
+    </div>
 
     <header>
         <div id="back-btn" class="back-btn" onclick="goHome()">←</div>
@@ -444,16 +319,13 @@
         </div>
         
         <div id="category-tabs" class="category-tabs">
-            <!-- ★ 修改 1: 名稱改為照片牆 -->
             <button class="tab-btn active" onclick="filterAlbums('all')">照片牆 Photo Wall</button>
             <button class="tab-btn" onclick="filterAlbums('portrait')">形象寫真</button>
             <button class="tab-btn" onclick="filterAlbums('event')">活動紀實</button>
         </div>
     </header>
 
-    <!-- 這裡將根據模式切換 class -->
     <div id="home-view" class="album-list"></div>
-
     <div id="gallery-view" class="gallery-view">
         <div id="gallery-grid" class="gallery-grid"></div>
     </div>
@@ -461,12 +333,9 @@
     <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
         <div class="close-btn" onclick="closeLightbox()">&times;</div>
-        
         <div class="nav-btn prev" onclick="changePhoto(-1)">&#10094;</div>
         <div class="nav-btn next" onclick="changePhoto(1)">&#10095;</div>
-
         <div id="lightbox-content" class="lightbox-content"></div>
-
         <div class="action-bar">
             <a id="download-btn" href="#" target="_blank" class="btn" download>
                 <span>↓</span> 下載原始檔 / Download Original
@@ -501,6 +370,79 @@
         const backBtn = document.getElementById('back-btn');
         const categoryTabs = document.getElementById('category-tabs');
         const socialLinks = document.getElementById('social-links');
+        const ageModal = document.getElementById('age-modal');
+        const pwaModal = document.getElementById('pwa-modal');
+        const pwaInstructions = document.getElementById('pwa-instructions');
+
+        // ★ 功能 1: 年齡確認
+        function checkAge() {
+            const isVerified = localStorage.getItem('ageVerified');
+            if (isVerified !== 'true') {
+                ageModal.classList.add('active');
+            } else {
+                checkPWA();
+            }
+        }
+
+        function confirmAge() {
+            localStorage.setItem('ageVerified', 'true');
+            ageModal.classList.remove('active');
+            checkPWA();
+        }
+
+        function exitSite() {
+            window.location.href = "https://www.google.com";
+        }
+
+        // ★ 功能 2: 自動裝置偵測 & PWA 提示 (修正：電腦版不顯示)
+        function checkPWA() {
+            const isDismissed = localStorage.getItem('pwaPromptDismissed');
+            if (isDismissed === 'true') return;
+
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isStandalone) return;
+
+            // 判斷裝置
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+            const isAndroid = /Android/.test(userAgent);
+
+            // ★ 新增：如果是電腦版 (非 iOS 也非 Android)，直接結束，不顯示視窗
+            if (!isIOS && !isAndroid) return;
+
+            // 準備圖示 (SVG)
+            const iconShare = `<svg class="inline-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
+            const iconPlus = `<svg class="inline-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>`;
+            const iconMenu = `<svg class="inline-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>`;
+
+            // 設定對應文案
+            if (isIOS) {
+                pwaInstructions.innerHTML = `
+                    將此網站加入主畫面，享受全螢幕體驗。<br><br>
+                    1. 點擊下方工具列的 <b>分享</b> ${iconShare}<br>
+                    2. 選擇 <b>加入主畫面</b> ${iconPlus}
+                `;
+            } else if (isAndroid) {
+                pwaInstructions.innerHTML = `
+                    將此網站加入主畫面，享受全螢幕體驗。<br><br>
+                    1. 點擊瀏覽器右上角選單 ${iconMenu}<br>
+                    2. 選擇 <b>安裝應用程式</b> 或 <b>加入主畫面</b>
+                `;
+            }
+
+            setTimeout(() => {
+                pwaModal.classList.add('active');
+            }, 1000);
+        }
+
+        function dismissPWA(forever = false) {
+            pwaModal.classList.remove('active');
+            if (forever) {
+                localStorage.setItem('pwaPromptDismissed', 'true');
+            } else {
+                localStorage.setItem('pwaPromptDismissed', 'true'); 
+            }
+        }
 
         function safePushState(data, title, url) {
             try { window.history.pushState(data, title, url); } 
@@ -508,9 +450,9 @@
         }
 
         function init() {
+            checkAge();
             const params = new URLSearchParams(window.location.search);
             const albumId = params.get('album');
-            
             if (albumId) {
                 loadAlbumPhotos(albumId);
             } else {
@@ -523,8 +465,6 @@
             homeView.style.display = ''; 
             homeView.className = 'photostream-mode'; 
             
-            // ★ 修改 2: 改為搜尋熱門照片 (interestingness-desc)
-            // 這會顯示 "熱門項目" (Popular Items)
             const url = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${API_KEY}&user_id=${USER_ID}&sort=interestingness-desc&extras=url_q,url_m,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
 
             try {
@@ -606,7 +546,6 @@
 
         function filterAlbums(type) {
             currentFilter = type;
-            
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             if(type === 'all') buttons[0].classList.add('active');
