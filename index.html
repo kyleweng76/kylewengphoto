@@ -12,7 +12,7 @@
     <link rel="shortcut icon" href="weblogo.png">
 
     <style>
-        /* ★ 修正 1: 全域 Box-sizing 設定，解決置中偏移問題 */
+        /* ★ 修正 1: 全域 Box-sizing 設定 */
         * {
             box-sizing: border-box;
         }
@@ -153,7 +153,7 @@
             max-width: 800px; 
         }
 
-        /* 照片牆樣式 */
+        /* 照片牆樣式 (Photostream) */
         #home-view.photostream-mode {
             display: grid; 
             max-width: 100%;
@@ -444,7 +444,8 @@
         </div>
         
         <div id="category-tabs" class="category-tabs">
-            <button class="tab-btn active" onclick="filterAlbums('all')">全部 All</button>
+            <!-- ★ 修改 1: 名稱改為照片牆 -->
+            <button class="tab-btn active" onclick="filterAlbums('all')">照片牆 Photo Wall</button>
             <button class="tab-btn" onclick="filterAlbums('portrait')">形象寫真</button>
             <button class="tab-btn" onclick="filterAlbums('event')">活動紀實</button>
         </div>
@@ -470,7 +471,6 @@
             <a id="download-btn" href="#" target="_blank" class="btn" download>
                 <span>↓</span> 下載原始檔 / Download Original
             </a>
-            <!-- ★ 修正 2: 強制文字置中 -->
             <p style="font-size: 12px; color: #ccc; margin: 8px 0 0 0; text-shadow: 0 1px 2px rgba(0,0,0,0.8); text-align: center;">手機請直接長按圖片儲存 / 電腦請點擊按鈕下載</p>
         </div>
     </div>
@@ -520,12 +520,12 @@
 
         async function fetchPhotostream() {
             homeView.innerHTML = '<div class="loading">正在載入照片牆...</div>';
-            // 清除 inline style 避免干擾 CSS Grid
             homeView.style.display = ''; 
             homeView.className = 'photostream-mode'; 
             
-            // 抓取公開照片
-            const url = `https://www.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${API_KEY}&user_id=${USER_ID}&extras=url_q,url_m,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
+            // ★ 修改 2: 改為搜尋熱門照片 (interestingness-desc)
+            // 這會顯示 "熱門項目" (Popular Items)
+            const url = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${API_KEY}&user_id=${USER_ID}&sort=interestingness-desc&extras=url_q,url_m,url_l,url_o&per_page=100&format=json&nojsoncallback=1`;
 
             try {
                 const response = await fetch(url);
@@ -566,7 +566,7 @@
 
         async function fetchAlbumsAndRender(filterType) {
             homeView.className = 'album-list';
-            homeView.style.display = 'flex'; // 列表模式需要 flex
+            homeView.style.display = 'flex'; 
             
             if (cachedAlbums.length > 0) {
                 renderAlbumList(cachedAlbums.filter(album => album.type === filterType));
@@ -613,7 +613,6 @@
             if(type === 'portrait') buttons[1].classList.add('active');
             if(type === 'event') buttons[2].classList.add('active');
 
-            // 狀態重置
             homeView.style.display = ''; 
             galleryView.style.display = 'none';
             backBtn.style.display = 'none';
